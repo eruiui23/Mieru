@@ -30,9 +30,9 @@ This document breaks down the Software Requirements Specification (SRS) and Syst
   - Define the abstract base class `OCREngine`.
   - Create the `MangaOCRStrategy` class and handle the model initialization.
   - Create the `TesseractStrategy` and `EasyOCRStrategy` classes.
-- [ ] **Task 2.3: Translation Integration**
+- [x] **Task 2.3: Translation Integration**
   - Integrate a translation service (e.g., `googletrans` or DeepL API) as a separate utility function that accepts raw text and a target language parameter.
-- [ ] **Task 2.4: Develop REST Endpoints**
+- [x] **Task 2.4: Develop REST Endpoints**
   - Build `POST /api/v1/ocr/process` for single-engine execution, ensuring parameters are strictly handled via explicit Form data bindings.
   - Build `POST /api/v1/ocr/compare` using `asyncio.gather()` to run multiple engine strategies concurrently.
   - Implement performance tracking to calculate execution latency (`latency_ms`) for each request.
