@@ -11,9 +11,9 @@ This document breaks down the Software Requirements Specification (SRS) and Syst
 
 - [ ] **Task 1.1: Initialize Version Control**
   - Create a Git repository and define the `.gitignore` for Python (`__pycache__`, `.venv`, `.env`, etc.).
-- [ ] **Task 1.2: Environment Setup**
-  - Create an isolated Python virtual environment (`venv`).
-  - Install core dependencies (`fastapi`, `uvicorn`, `streamlit`, `requests`, `python-multipart`).
+- [ ] **Task 1.2: Modern Environment Setup via uv**
+  - Initialize a managed Python project workspace using `uv init`.
+  - Install core dependencies using `uv add` (`fastapi`, `uvicorn`, `streamlit`, `requests`, `python-multipart`).
 - [ ] **Task 1.3: Define Directory Structure**
   - Apply Clean Architecture principles—structuring directories by domain models, use cases, and infrastructure—to keep the FastAPI backend decoupled and highly maintainable.
   - Create separate root directories for `/frontend` and `/backend`.
@@ -33,7 +33,7 @@ This document breaks down the Software Requirements Specification (SRS) and Syst
 - [ ] **Task 2.3: Translation Integration**
   - Integrate a translation service (e.g., `googletrans` or DeepL API) as a separate utility function that accepts raw text and a target language parameter.
 - [ ] **Task 2.4: Develop REST Endpoints**
-  - Build `POST /api/v1/ocr/process` for single-engine execution.
+  - Build `POST /api/v1/ocr/process` for single-engine execution, ensuring parameters are strictly handled via explicit Form data bindings.
   - Build `POST /api/v1/ocr/compare` using `asyncio.gather()` to run multiple engine strategies concurrently.
   - Implement performance tracking to calculate execution latency (`latency_ms`) for each request.
 
@@ -50,6 +50,7 @@ This document breaks down the Software Requirements Specification (SRS) and Syst
   - Integrate a custom Streamlit image cropping component (e.g., `streamlit-cropper`) to allow users to isolate specific text bubbles.
   - Render the live image preview that updates based on the sidebar slider values.
 - [ ] **Task 3.3: API Integration & State Management**
+  - Implement Streamlit Session State (`st.session_state`) to cache cropping boundaries, ensuring slider micro-interactions do not clear or reset the active user crop.
   - Write the `requests.post` logic to send the image and parameters to the FastAPI backend.
   - Handle loading states (`st.spinner`) while waiting for the OCR engines to finish processing.
 - [ ] **Task 3.4: Build the Output Views**
@@ -62,7 +63,7 @@ This document breaks down the Software Requirements Specification (SRS) and Syst
 *Goal: Validate the accuracy, speed, and reliability of the full pipeline.*
 
 - [ ] **Task 4.1: End-to-End API Testing**
-  - Use Swagger UI (`http://localhost:8000/docs`) to manually test payloads and verify Pydantic schema validation.
+  - Use Swagger UI (`http://localhost:8000/docs`) to manually test payloads and verify Pydantic schema validation for form-to-primitive parsing.
 - [ ] **Task 4.2: Manga-OCR Accuracy Validation**
   - Test the Japanese OCR extraction accuracy by feeding raw manga panels (like *Ao no Hako* / *Blue Box* chapters) into the pipeline to verify reliable kanji detection.
 - [ ] **Task 4.3: Concurrency Testing**

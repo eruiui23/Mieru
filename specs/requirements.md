@@ -29,7 +29,8 @@ The application follows the Separation of Concerns (SoC) principle, splitting re
 #### FR-01: Image Upload and Validation
 * **Description:** The system must allow users to upload images for text extraction.
 * **Inputs:** Image files via a drag-and-drop or file-browser component.
-* **Processing:** * The frontend must restrict file types to `.png`, `.jpg`, and `.jpeg`.
+* **Processing:**
+  * The frontend must restrict file types to `.png`, `.jpg`, and `.jpeg`.
   * The backend must validate the incoming payload's MIME type to ensure it is a valid image.
 * **Outputs:** Successful loading of the file into system memory, or an error message if the file format is invalid.
 
@@ -45,7 +46,9 @@ The application follows the Separation of Concerns (SoC) principle, splitting re
   * **Image Cropping:** Users can select and crop a specific area of the image (e.g., a single speech bubble or a specific text block).
   * **Grayscale Toggle:** A binary control to convert the image from color (RGB) to black-and-white (grayscale).
   * **Brightness & Contrast Sliders:** Interactive sliders to increase or decrease image illumination and contrast levels.
-* **Processing:** The frontend passes the adjustment parameters to the backend, where OpenCV or Pillow processes the image array before running the OCR analysis.
+* **Processing:**
+  * The frontend must cache the crop bounding box values within the Streamlit Session State (`st.session_state`) to prevent slider UI state re-runs from resetting active selections.
+  * The frontend passes the adjustment parameters to the backend, where OpenCV or Pillow processes the image array before running the OCR analysis.
 * **Outputs:** An updated visual preview of the modified image and an optimized image array sent to the OCR pipeline.
 
 #### FR-04: Multi-Engine OCR Selector
@@ -88,3 +91,4 @@ The application follows the Separation of Concerns (SoC) principle, splitting re
 
 ### 4.3 Reliability and Maintainability
 * **Modularity (NFR-M-01):** The backend must implement a decoupled design pattern (such as the Strategy Pattern) for the OCR execution block, ensuring new engines can be added with minimal changes to existing core code.
+* **Data Layer Coercion Safety (NFR-M-02):** The API router boundary must explicitly handle HTTP form data parsing by coercing primitive input types (string-to-float, string-to-boolean) safely at the input schema interface layer before ingestion by the execution pipelines.

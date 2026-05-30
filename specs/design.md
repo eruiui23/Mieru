@@ -16,14 +16,15 @@ The application utilizes a decoupled client-server architecture. To ensure high 
 
 ---
 
-## 2. User Interface (UI) Layout Design
+## 2. User Interface (UI) Layout & State Design
 
 The Streamlit interface is divided into functional zones to provide a seamless user experience.
 
 ### 2.1 Main Application Layout
 * **Sidebar (Configuration Panel):**
     * **Engine Selector:** Dropdown to select the OCR Engine (Manga-OCR, Tesseract, EasyOCR, or "Run All" for comparison).
-    * **Image Manipulator:** * Grayscale Toggle (Checkbox).
+    * **Image Manipulator:**
+        * Grayscale Toggle (Checkbox).
         * Brightness & Contrast adjusters (Sliders).
     * **Language Selector:** Dropdown for target translation language.
 * **Main Window - Left Column (Input & Preview):**
@@ -34,6 +35,9 @@ The Streamlit interface is divided into functional zones to provide a seamless u
 * **Main Window - Right Column (Output & Analytics):**
     * *Single Mode:* Displays extracted raw text and the translated text in copyable markdown blocks.
     * *Comparison Mode:* Displays a side-by-side grid of text outputs from all engines, along with a bar chart plotting the execution latency of each engine.
+
+### 2.2 Frontend State Preservation
+Because Streamlit re-executes the entire script upon any widget modification (such as moving the brightness or contrast sliders), the application leverages `st.session_state` to store user cropping boundaries. This mechanism protects crop states from being reset during subsequent pipeline parameter adjustments.
 
 ---
 
@@ -52,7 +56,7 @@ Used to instantiate the correct OCR strategy based on the user's selection from 
 
 ## 4. API Specification (FastAPI)
 
-The backend exposes RESTful endpoints to communicate with the Streamlit client.
+The backend exposes RESTful endpoints to communicate with the Streamlit client. Because Multipart Form-Data natively transmits parameters as strings, the backend uses explicit FastAPI `Form(...)` field configurations to automatically enforce string-to-primitive coercion (e.g., parsing incoming string values into strict boolean or float primitives).
 
 ### 4.1 `POST /api/v1/ocr/process`
 Processes an image using a single specified OCR engine.
@@ -111,12 +115,13 @@ Executes the image processing concurrently across all available engines for the 
 
 When the Streamlit client sends an image and parameters to the FastAPI backend, the data flows through the following pipeline:
 
-1.  **Ingestion & Validation:** FastAPI receives the multipart form data and Pydantic validates the parameter data types.
-2.  **Pre-processing (OpenCV/Pillow):** * The image byte stream is loaded into an array.
+1. **Ingestion & Validation:** FastAPI receives the multipart form data. The request values are validated and coerced into their strict primitive data types via FastAPI `Form(...)` handlers matching Pydantic-backed parameter rules.
+2. **Pre-processing (OpenCV/Pillow):**
+    * The image byte stream is loaded into an array.
     * If `grayscale=True`, the color channels are collapsed.
     * Brightness and contrast matrices are applied based on the slider values.
-3.  **OCR Execution (Strategy Context):**
+3. **OCR Execution (Strategy Context):**
     * The processed image matrix is passed to the selected engine(s).
     * For the `/compare` endpoint, execution runs asynchronously using Python's `asyncio.gather()` to prevent engine bottlenecks.
-4.  **Post-processing (Translation):** The extracted text strings are routed to the translation API module.
-5.  **Response Delivery:** The latency metrics, raw text, and translated text are packaged into a JSON response and returned to the client.
+4. **Post-processing (Translation):** The extracted text strings are routed to the translation API module.
+5. **Response Delivery:** The latency metrics, raw text, and translated text are packaged into a JSON response and returned to the client.
