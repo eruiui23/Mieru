@@ -1,3 +1,4 @@
+# TODO: implement the tesseract and EasyOCR strategies
 import time
 from abc import ABC, abstractmethod
 
@@ -37,14 +38,18 @@ class MangaOCRStrategy(OCREngine):
 class TesseractStrategy(OCREngine):
     def __init__(self):
         print("Initializing Tesseract Engine...")
+        # TODO: Phase 2.2 - Uncomment and import pytesseract when installing the C++ engine
         # import pytesseract
 
     def extract_text(self, image: Image.Image) -> str:
+        # TODO: Phase 2.2 - Replace sleep simulation with actual pytesseract.image_to_string()
         # return pytesseract.image_to_string(image)
         time.sleep(0.5)  # Simulate processing time
         return "Tesseract simulation: Extracted text goes here."
 
 
+# TODO: Phase 2.2 - Create EasyOCRStrategy class here
+#
 # ---------------------------------------------------------
 # 4. The Context / Factory
 # ---------------------------------------------------------
@@ -54,7 +59,7 @@ class OCRContext:
         self.engines = {
             "manga_ocr": MangaOCRStrategy(),
             "tesseract": TesseractStrategy(),
-            # "easyocr": EasyOCRStrategy() # Add this later when needed
+            # TODO: Phase 2.2 - Add "easyocr": EasyOCRStrategy() to this dictionary once implemented
         }
 
     def execute_strategy(
