@@ -23,16 +23,16 @@ This document breaks down the Software Requirements Specification (SRS) and Syst
 ## Phase 2: Core Backend Engine (FastAPI)
 *Goal: Implement the image processing and OCR strategy logic.*
 
-- [ ] **Task 2.1: Image Pre-processing Module**
+- [x] **Task 2.1: Image Pre-processing Module**
   - Implement OpenCV/Pillow functions to handle image conversion to byte arrays.
   - Create utility functions for Grayscale conversion, Brightness, and Contrast adjustments.
-- [ ] **Task 2.2: Implement Strategy Design Pattern**
+- [x] **Task 2.2: Implement Strategy Design Pattern**
   - Define the abstract base class `OCREngine`.
   - Create the `MangaOCRStrategy` class and handle the model initialization.
   - Create the `TesseractStrategy` and `EasyOCRStrategy` classes.
-- [ ] **Task 2.3: Translation Integration**
+- [x] **Task 2.3: Translation Integration**
   - Integrate a translation service (e.g., `googletrans` or DeepL API) as a separate utility function that accepts raw text and a target language parameter.
-- [ ] **Task 2.4: Develop REST Endpoints**
+- [x] **Task 2.4: Develop REST Endpoints**
   - Build `POST /api/v1/ocr/process` for single-engine execution, ensuring parameters are strictly handled via explicit Form data bindings.
   - Build `POST /api/v1/ocr/compare` using `asyncio.gather()` to run multiple engine strategies concurrently.
   - Implement performance tracking to calculate execution latency (`latency_ms`) for each request.
