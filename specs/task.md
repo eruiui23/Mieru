@@ -9,12 +9,12 @@ This document breaks down the Software Requirements Specification (SRS) and Syst
 ## Phase 1: Project Setup & Architecture
 *Goal: Establish the repository, environments, and foundational folder structure.*
 
-- [ ] **Task 1.1: Initialize Version Control**
+- [x] **Task 1.1: Initialize Version Control**
   - Create a Git repository and define the `.gitignore` for Python (`__pycache__`, `.venv`, `.env`, etc.).
-- [ ] **Task 1.2: Modern Environment Setup via uv**
+- [x] **Task 1.2: Modern Environment Setup via uv**
   - Initialize a managed Python project workspace using `uv init`.
   - Install core dependencies using `uv add` (`fastapi`, `uvicorn`, `streamlit`, `requests`, `python-multipart`).
-- [ ] **Task 1.3: Define Directory Structure**
+- [x] **Task 1.3: Define Directory Structure**
   - Apply Clean Architecture principles—structuring directories by domain models, use cases, and infrastructure—to keep the FastAPI backend decoupled and highly maintainable.
   - Create separate root directories for `/frontend` and `/backend`.
 
