@@ -47,9 +47,20 @@ st.caption("Manga & Document OCR with Translation")
 # Two-column layout: Left = Input/Preview, Right = Output
 left_col, right_col = st.columns([1, 1])
 
+
 with left_col:
     st.subheader("Upload Image")
-    # tempat buat upload nanti aku tambahin
+
+    uploaded_file = st.file_uploader(
+        "Drag and drop or browse an image",
+        type=["png", "jpg", "jpeg"],
+    )
+
+    if uploaded_file is not None:
+        # Load and display the uploaded image
+        image = Image.open(uploaded_file)
+        st.image(image, caption="Uploaded Image", use_container_width=True)
+
 
 with right_col:
     st.subheader("Results")
