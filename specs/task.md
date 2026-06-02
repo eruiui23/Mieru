@@ -42,7 +42,7 @@ This document breaks down the Software Requirements Specification (SRS) and Syst
 ## Phase 3: Frontend Interface (Streamlit)
 *Goal: Build the interactive UI and connect it to the backend API.*
 
-- [ ] **Task 3.1: Construct the Layout**
+- [x] **Task 3.1: Construct the Layout**
   - Configure the page layout to `wide` mode.
   - Build the Sidebar containing the Engine Selector dropdown, Grayscale toggle, Brightness/Contrast sliders, and Target Language dropdown.
 - [ ] **Task 3.2: Image Upload & Preview Component**
