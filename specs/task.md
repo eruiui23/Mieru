@@ -23,17 +23,14 @@ This document breaks down the Software Requirements Specification (SRS) and Syst
 ## Phase 2: Core Backend Engine (FastAPI)
 *Goal: Implement the image processing and OCR strategy logic.*
 
-- [x] **Task 2.1: Image Pre-processing Module**
-  - Implement OpenCV/Pillow functions to handle image conversion to byte arrays.
-  - Create utility functions for Grayscale conversion, Brightness, and Contrast adjustments.
-- [x] **Task 2.2: Implement Strategy Design Pattern**
+- [x] **Task 2.1: Implement Strategy Design Pattern**
   - Define the abstract base class `OCREngine`.
   - Create the `MangaOCRStrategy` class and handle the model initialization.
   - Create the `TesseractStrategy` and `EasyOCRStrategy` classes.
-- [x] **Task 2.3: Translation Integration**
+- [x] **Task 2.2: Translation Integration**
   - Integrate a translation service (e.g., `googletrans` or DeepL API) as a separate utility function that accepts raw text and a target language parameter.
-- [x] **Task 2.4: Develop REST Endpoints**
-  - Build `POST /api/v1/ocr/process` for single-engine execution, ensuring parameters are strictly handled via explicit Form data bindings.
+- [x] **Task 2.3: Develop REST Endpoints**
+  - Build `POST /api/v1/ocr/process` for single-engine execution, ensuring parameters (excluding `grayscale`, `brightness`, and `contrast`) are strictly handled via explicit Form data bindings.
   - Build `POST /api/v1/ocr/compare` using `asyncio.gather()` to run multiple engine strategies concurrently.
   - Implement performance tracking to calculate execution latency (`latency_ms`) for each request.
 
@@ -48,7 +45,8 @@ This document breaks down the Software Requirements Specification (SRS) and Syst
 - [ ] **Task 3.2: Image Upload & Preview Component**
   - Implement `st.file_uploader` supporting `.png`, `.jpg`, `.jpeg`.
   - Integrate a custom Streamlit image cropping component (e.g., `streamlit-cropper`) to allow users to isolate specific text bubbles.
-  - Render the live image preview that updates based on the sidebar slider values.
+  - Use Pillow (`ImageOps` and `ImageEnhance`) to apply Grayscale, Brightness, and Contrast adjustments directly to the uploaded image state.
+  - Render the live image preview using this Pillow-processed image, and then convert it to a PNG byte array before sending it via `requests.post`.
 - [ ] **Task 3.3: API Integration & State Management**
   - Implement Streamlit Session State (`st.session_state`) to cache cropping boundaries, ensuring slider micro-interactions do not clear or reset the active user crop.
   - Write the `requests.post` logic to send the image and parameters to the FastAPI backend.
