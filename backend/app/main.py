@@ -1,9 +1,9 @@
 import asyncio
+from io import BytesIO
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-
-from backend.app.core.image_processing import process_image
+from PIL import Image
 
 # Import your newly created modules
 from backend.app.models.schemas import ComparisonResponse, OCRResponse
@@ -34,9 +34,6 @@ async def root():
 async def process_ocr(
     file: UploadFile = File(...),
     engine: str = Form(...),
-    grayscale: bool = Form(False),
-    brightness: float = Form(1.0),
-    contrast: float = Form(1.0),
     target_lang: str = Form("en"),
 ):
     # 1. Validate File Type
@@ -47,12 +44,12 @@ async def process_ocr(
         # 2. Read file bytes into memory
         image_bytes = await file.read()
 
-        # 3. Process the image (OpenCV/Pillow)
-        processed_image = process_image(image_bytes, grayscale, brightness, contrast)
+        # 3. Load image directly using Pillow
+        image = Image.open(BytesIO(image_bytes))
 
         # 4. Execute the specific OCR Engine
         extracted_text, latency_ms = ocr_context.execute_strategy(
-            engine, processed_image
+            engine, image
         )
 
         # 5. Translate the result
@@ -76,9 +73,6 @@ async def process_ocr(
 @app.post("/api/ocr/compare", response_model=ComparisonResponse)
 async def compare_ocr(
     file: UploadFile = File(...),
-    grayscale: bool = Form(False),
-    brightness: float = Form(1.0),
-    contrast: float = Form(1.0),
     target_lang: str = Form("en"),
 ):
     if not file.content_type or not file.content_type.startswith("image/"):
@@ -86,7 +80,7 @@ async def compare_ocr(
 
     try:
         image_bytes = await file.read()
-        processed_image = process_image(image_bytes, grayscale, brightness, contrast)
+        image = Image.open(BytesIO(image_bytes))
 
         results = []
 
@@ -95,7 +89,7 @@ async def compare_ocr(
             # execute_strategy is synchronous, so we run it in a threadpool to not block FastAPI
             loop = asyncio.get_running_loop()
             extracted_text, latency = await loop.run_in_executor(
-                None, ocr_context.execute_strategy, engine_name, processed_image
+                None, ocr_context.execute_strategy, engine_name, image
             )
             translated_text = await translate_text(extracted_text, target_lang)
 
