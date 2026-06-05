@@ -38,7 +38,7 @@ The Streamlit interface is divided into functional zones to provide a seamless u
 * **Main Window - Right Column (Output & Analytics):**
     * *Single Mode:* 
         * Displays extracted raw text and the translated text in copyable markdown blocks.
-        * **Advanced Analysis (Optional Expander):** A conditional `st.expander` titled "文法 & 振り仮名 | Japanese Analysis (Furigana & Readings)" that renders a dataframe containing token-level advanced features payload. This is a conditional layout block that remains hidden unless the advanced payload is present.
+        * **Advanced Analysis (Optional Expander):** A conditional `st.expander` titled "文法 & 振り仮名 | Japanese Analysis (Furigana & Readings)" that renders a dataframe containing token-level details (`token`, `furigana`, `romaji`, `meaning`). This is a conditional layout block that remains hidden unless the advanced payload is present.
     * *Comparison Mode:* Displays a side-by-side grid of text outputs from all engines, along with a bar chart plotting the execution latency of each engine.
 
 ### 2.2 Frontend State Preservation
@@ -81,14 +81,16 @@ Processes an image using a single specified OCR engine.
         "latency_ms": 450.5,
         "advanced_analysis": [
           {
-            "kanji": "こんにちは",
-            "kana": "こんにちは",
-            "roman": "konnichiha"
+            "token": "こんにちは",
+            "furigana": "こんにちは",
+            "romaji": "konnichiha",
+            "meaning": "hello; good day"
           },
           {
-            "kanji": "世界",
-            "kana": "せかい",
-            "roman": "sekai"
+            "token": "世界",
+            "furigana": "せかい",
+            "romaji": "sekai",
+            "meaning": "world; society; universe"
           }
         ] // Optional: List[Dict[str, str]] - Activates strictly when advanced analysis payload is present.
       }
@@ -113,14 +115,16 @@ Executes the image processing concurrently across all available engines for the 
             "latency_ms": 450.5,
             "advanced_analysis": [
               {
-                "kanji": "こんにちは",
-                "kana": "こんにちは",
-                "roman": "konnichiha"
+                "token": "こんにちは",
+                "furigana": "こんにちは",
+                "romaji": "konnichiha",
+                "meaning": "hello; good day"
               },
               {
-                "kanji": "世界",
-                "kana": "せかい",
-                "roman": "sekai"
+                "token": "世界",
+                "furigana": "せかい",
+                "romaji": "sekai",
+                "meaning": "world; society; universe"
               }
             ] // Optional: List[Dict[str, str]]
           },
