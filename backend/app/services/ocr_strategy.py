@@ -4,10 +4,6 @@ from abc import ABC, abstractmethod
 
 from PIL import Image
 
-
-# ---------------------------------------------------------
-# 1. The Abstract Base Class (The Interface)
-# ---------------------------------------------------------
 class OCREngine(ABC):
     @abstractmethod
     def extract_text(self, image: Image.Image) -> str:
@@ -18,9 +14,6 @@ class OCREngine(ABC):
         pass
 
 
-# ---------------------------------------------------------
-# 2. Concrete Strategy A: Manga-OCR
-# ---------------------------------------------------------
 class MangaOCRStrategy(OCREngine):
     def __init__(self):
         print("Initializing Manga-OCR Model (This takes a moment)...")
@@ -32,9 +25,6 @@ class MangaOCRStrategy(OCREngine):
         return self.mocr(image)
 
 
-# ---------------------------------------------------------
-# 3. Concrete Strategy B: Tesseract
-# ---------------------------------------------------------
 class TesseractStrategy(OCREngine):
     def __init__(self):
         print("Initializing Tesseract Engine...")
