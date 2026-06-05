@@ -42,7 +42,7 @@ This document breaks down the Software Requirements Specification (SRS) and Syst
 - [x] **Task 3.1: Construct the Layout**
   - Configure the page layout to `wide` mode.
   - Build the Sidebar containing the Engine Selector dropdown, Grayscale toggle, Brightness/Contrast sliders, and Target Language dropdown.
-- [ ] **Task 3.2: Image Upload & Preview Component**
+- [x] **Task 3.2: Image Upload & Preview Component**
   - Implement `st.file_uploader` supporting `.png`, `.jpg`, `.jpeg`.
   - Integrate a custom Streamlit image cropping component (e.g., `streamlit-cropper`) to allow users to isolate specific text bubbles.
   - Use Pillow (`ImageOps` and `ImageEnhance`) to apply Grayscale, Brightness, and Contrast adjustments directly to the uploaded image state.
