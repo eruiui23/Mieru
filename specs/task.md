@@ -60,24 +60,34 @@ This document breaks down the Software Requirements Specification (SRS) and Syst
 ## Phase 4: Integration & Testing
 *Goal: Validate the accuracy, speed, and reliability of the full pipeline.*
 
-- [ ] **Task 4.1: End-to-End API Testing**
+- [x] **Task 4.1: End-to-End API Testing**
   - Use Swagger UI (`http://localhost:8000/docs`) to manually test payloads and verify Pydantic schema validation for form-to-primitive parsing.
-- [ ] **Task 4.2: Manga-OCR Accuracy Validation**
+- [x] **Task 4.2: Manga-OCR Accuracy Validation**
   - Test the Japanese OCR extraction accuracy by feeding raw manga panels (like *Ao no Hako* / *Blue Box* chapters) into the pipeline to verify reliable kanji detection.
-- [ ] **Task 4.3: Concurrency Testing**
+- [x] **Task 4.3: Concurrency Testing**
   - Run the Comparison Mode multiple times to ensure the asynchronous backend does not drop requests or mix up image matrices when processing Tesseract, Manga-OCR, and EasyOCR simultaneously.
 - [ ] **Task 4.4: Error Handling UI**
   - Simulate backend connection failures and ensure Streamlit displays a graceful error message rather than a raw Python traceback.
 
 ---
 
-## Phase 5: Finalization & Documentation
+## Phase 5: Advanced Features
+*Goal: Integrate linguistic analysis and other modular advanced features.*
+
+- [ ] **Task 5.1: Backend Text Dissection Pipeline:** Integrate a text parser (like pykakasi) into the backend services layer to dissect raw text strings into structured dictionaries containing tokens, furigana, rōmaji, and part-of-speech attributes.
+- [ ] **Task 5.2: API Schema Extension:** Update the backend endpoints and Pydantic response models (`OCRResponse`) to include an optional data payload field for advanced analysis, ensuring backwards compatibility.
+- [ ] **Task 5.3: Frontend Accordion Dropdown (Option B):** Implement an `st.expander` named "文法 & 振り仮名 | Japanese Analysis (Furigana & Readings)" sitting right below the Extracted/Translated text block, which renders the payload inside a clean, conditional `st.dataframe`.
+
+---
+
+## Phase 6: Finalization & Documentation
 *Goal: Prepare the project for the final academic presentation.*
 
-- [ ] **Task 5.1: Code Cleanup & Refactoring**
+- [ ] **Task 6.1: Code Cleanup & Refactoring**
   - Remove hardcoded values and move sensitive data (like API keys) to `.env` files.
   - Add type hints and docstrings to all major backend functions.
-- [ ] **Task 5.2: Write the README**
+- [ ] **Task 6.2: Write the README**
   - Compile the Feature Backlog, Setup Instructions, and API Documentation into a comprehensive `README.md`.
-- [ ] **Task 5.3: Presentation Prep**
+- [ ] **Task 6.3: Presentation Prep**
   - Prepare a set of sample images (standard documents, manga pages, noisy images) to demonstrate the application's capabilities during the final project review.
+
