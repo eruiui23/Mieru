@@ -66,24 +66,21 @@ with st.sidebar:
         }[x],
     )
 
-# ─────────────────────────────────────────────
-# Main Content Area
-# ─────────────────────────────────────────────
+
 st.title("Welcome to Mieru")
 st.caption("Manga & Document OCR with Translation")
 
-# ─────────────────────────────────────────────
-# Row 1: Image Upload, Cropper, and Preview
-# ─────────────────────────────────────────────
+
 st.subheader("Upload Image")
 
-uploaded_file = st.file_uploader(
-    "Drag and drop or browse an image",
+uploaded_files = st.file_uploader(
+    "Drag and drop or browse images",
     type=["png", "jpg", "jpeg"],
+    accept_multiple_files=True,
 )
 
-if uploaded_file is not None:
-    st.caption("Original Image")
+for idx, uploaded_file in enumerate(uploaded_files):
+    st.caption(f"Image {idx + 1}: {uploaded_file.name}")
     image = Image.open(uploaded_file).convert("RGB")
 
     # Row 1: Full original image (full width)
@@ -103,14 +100,30 @@ if uploaded_file is not None:
             (int(image.width * ratio), CROPPER_HEIGHT)
         )
 
-        cropped_image = st_cropper(
+        crop_box = st_cropper(
             cropper_display,
             realtime_update=True,
-            box_color="red",
+            box_color="#2e51a2",
             aspect_ratio=None,
-            return_type="image",
+            return_type="box",
             should_resize_image=False,
+            key=f"cropper_{idx}",
         )
+
+        # Scale crop coordinates back to original image resolution
+        scale_back = 1 / ratio
+        left = int(crop_box["left"] * scale_back)
+        top = int(crop_box["top"] * scale_back)
+        right = int((crop_box["left"] + crop_box["width"]) * scale_back)
+        bottom = int((crop_box["top"] + crop_box["height"]) * scale_back)
+
+        # Clamp to image bounds
+        left = max(0, left)
+        top = max(0, top)
+        right = min(image.width, right)
+        bottom = min(image.height, bottom)
+
+        cropped_image = image.crop((left, top, right, bottom))
 
     with preview_col:
         preview = cropped_image
@@ -137,15 +150,12 @@ if uploaded_file is not None:
         # Convert processed image to PNG bytes for backend submission
         buffer = io.BytesIO()
         preview.save(buffer, format="PNG")
-        st.session_state["processed_image_bytes"] = buffer.getvalue()
+        st.session_state[f"processed_image_bytes_{idx}"] = buffer.getvalue()
 
-    # ─────────────────────────────────────────────
-    # Row 3: Process Button & Results
-    # ─────────────────────────────────────────────
     st.divider()
 
-    if st.button("Process Image", type="primary"):
-        image_bytes = st.session_state.get("processed_image_bytes")
+    if st.button("Process Image", type="primary", key=f"process_{idx}"):
+        image_bytes = st.session_state.get(f"processed_image_bytes_{idx}")
 
         if image_bytes is None:
             st.error("No processed image available.")
@@ -153,14 +163,12 @@ if uploaded_file is not None:
             with st.spinner("Processing OCR..."):
                 try:
                     if engine == "compare":
-                        # Compare mode - send to /api/ocr/compare
                         response = requests.post(
                             f"{API_BASE_URL}/api/ocr/compare",
                             files={"file": ("image.png", image_bytes, "image/png")},
                             data={"target_lang": target_lang},
                         )
                     else:
-                        # Single engine mode - send to /api/ocr
                         response = requests.post(
                             f"{API_BASE_URL}/api/ocr",
                             files={"file": ("image.png", image_bytes, "image/png")},
@@ -171,7 +179,7 @@ if uploaded_file is not None:
                         )
 
                     if response.status_code == 200:
-                        st.session_state["ocr_result"] = response.json()
+                        st.session_state[f"ocr_result_{idx}"] = response.json()
                     else:
                         st.error(f"Backend error ({response.status_code}): {response.json().get('detail', 'Unknown error')}")
 
@@ -180,19 +188,16 @@ if uploaded_file is not None:
                 except Exception as e:
                     st.error(f"An error occurred: {str(e)}")
 
-    # Display results
+    # Display results for this image
     st.subheader("Results")
 
-    if "ocr_result" in st.session_state:
-        result = st.session_state["ocr_result"]
+    if f"ocr_result_{idx}" in st.session_state:
+        result = st.session_state[f"ocr_result_{idx}"]
 
         if engine == "compare":
-            # ─────────────────────────────────────────
-            # Comparison Mode View
-            # ─────────────────────────────────────────
+            # Comparison mode
             results_list = result.get("results", [])
             if results_list:
-                # Side-by-side results grid
                 cols = st.columns(len(results_list))
                 for i, r in enumerate(results_list):
                     with cols[i]:
@@ -203,18 +208,14 @@ if uploaded_file is not None:
                         st.markdown("Translated Text:")
                         st.code(r["translated_text"], language=None)
 
-                # Latency bar chart
                 st.markdown("**Performance Comparison**")
-
                 chart_data = pd.DataFrame({
                     "Engine": [r["engine"] for r in results_list],
                     "Latency (ms)": [r["execution_time_ms"] for r in results_list],
                 })
                 st.bar_chart(chart_data, x="Engine", y="Latency (ms)")
         else:
-            # ─────────────────────────────────────────
             # Single Mode View
-            # ─────────────────────────────────────────
             st.caption(f"Engine: **{result.get('engine')}** | {result.get('execution_time_ms')} ms")
 
             text_col, translation_col = st.columns([1, 1])
@@ -226,3 +227,7 @@ if uploaded_file is not None:
             with translation_col:
                 st.markdown("**Translated Text**")
                 st.code(result.get("translated_text", ""), language=None)
+
+    # Separator between images
+    if idx < len(uploaded_files) - 1:
+        st.markdown("---")
