@@ -15,7 +15,7 @@ st.set_page_config(
     layout="wide",
 )
 
-
+# Sidebar
 with st.sidebar:
     st.header("Configuration")
 
@@ -79,11 +79,22 @@ uploaded_files = st.file_uploader(
     accept_multiple_files=True,
 )
 
-for idx, uploaded_file in enumerate(uploaded_files):
-    st.caption(f"Image {idx + 1}: {uploaded_file.name}")
+if uploaded_files:
+    # Select which image to work with
+    image_options = [f"Image {i + 1}: {f.name}" for i, f in enumerate(uploaded_files)]
+    selected_idx = st.selectbox(
+        "Select Image",
+        range(len(uploaded_files)),
+        format_func=lambda i: image_options[i],
+        key="image_selector",
+    )
+
+    idx = selected_idx
+    uploaded_file = uploaded_files[idx]
     image = Image.open(uploaded_file).convert("RGB")
 
     # Row 1: Full original image (full width)
+    st.caption("Original Image")
     st.image(image, width=400)
 
     # Row 2: Cropper + Processed Preview side by side
@@ -103,7 +114,7 @@ for idx, uploaded_file in enumerate(uploaded_files):
         crop_box = st_cropper(
             cropper_display,
             realtime_update=True,
-            box_color="#2e51a2",
+            box_color="#001f54",
             aspect_ratio=None,
             return_type="box",
             should_resize_image=False,
@@ -152,6 +163,7 @@ for idx, uploaded_file in enumerate(uploaded_files):
         preview.save(buffer, format="PNG")
         st.session_state[f"processed_image_bytes_{idx}"] = buffer.getvalue()
 
+    # Row 3: Process Button & Results
     st.divider()
 
     if st.button("Process Image", type="primary", key=f"process_{idx}"):
@@ -188,14 +200,13 @@ for idx, uploaded_file in enumerate(uploaded_files):
                 except Exception as e:
                     st.error(f"An error occurred: {str(e)}")
 
-    # Display results for this image
+    # Display results
     st.subheader("Results")
 
     if f"ocr_result_{idx}" in st.session_state:
         result = st.session_state[f"ocr_result_{idx}"]
 
         if engine == "compare":
-            # Comparison mode
             results_list = result.get("results", [])
             if results_list:
                 cols = st.columns(len(results_list))
@@ -215,7 +226,6 @@ for idx, uploaded_file in enumerate(uploaded_files):
                 })
                 st.bar_chart(chart_data, x="Engine", y="Latency (ms)")
         else:
-            # Single Mode View
             st.caption(f"Engine: **{result.get('engine')}** | {result.get('execution_time_ms')} ms")
 
             text_col, translation_col = st.columns([1, 1])
@@ -227,7 +237,3 @@ for idx, uploaded_file in enumerate(uploaded_files):
             with translation_col:
                 st.markdown("**Translated Text**")
                 st.code(result.get("translated_text", ""), language=None)
-
-    # Separator between images
-    if idx < len(uploaded_files) - 1:
-        st.markdown("---")
