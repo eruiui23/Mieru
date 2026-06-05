@@ -16,4 +16,5 @@ dependencies = [
     "legacy-cgi",
     "streamlit-cropper>=0.3.1",
     "pytesseract",
+    "easyocr",
 ]

@@ -14,6 +14,9 @@ The application utilizes a decoupled client-server architecture. To ensure high 
 * **Application/Domain Layer (Backend):** Built with **FastAPI**. It handles routing, request validation via Pydantic, and orchestrates the OCR execution and translation pipeline.
 * **Infrastructure Layer:** Contains the actual implementations of the external OCR engines (`manga-ocr`, `pytesseract`, `easyocr`) and translation services. Image processing libraries (Pillow) are now handled in the Presentation Layer.
 
+### 1.2 Phase 5: Advanced Features Subsystem
+* **Modular Advanced Services:** The advanced features module (including any text dissection, tokenization, or linguistic parsing components, such as `pykakasi`) attaches modularly to the backend domain/services layer. This keeps the core OCR engine implementations (`OCREngine` subclasses) cleanly isolated from downstream text analysis, conforming to the Single Responsibility Principle and ensuring ease of extension for future features.
+
 ---
 
 ## 2. User Interface (UI) Layout & State Design
@@ -33,7 +36,9 @@ The Streamlit interface is divided into functional zones to provide a seamless u
     * Live Preview of the pre-processed image (reflecting sidebar adjustments).
     * "Process Image" action button.
 * **Main Window - Right Column (Output & Analytics):**
-    * *Single Mode:* Displays extracted raw text and the translated text in copyable markdown blocks.
+    * *Single Mode:* 
+        * Displays extracted raw text and the translated text in copyable markdown blocks.
+        * **Advanced Analysis (Optional Expander):** A conditional `st.expander` titled "文法 & 振り仮名 | Japanese Analysis (Furigana & Readings)" that renders a dataframe containing token-level details (`token`, `furigana`, `romaji`, `meaning`). This is a conditional layout block that remains hidden unless the advanced payload is present.
     * *Comparison Mode:* Displays a side-by-side grid of text outputs from all engines, along with a bar chart plotting the execution latency of each engine.
 
 ### 2.2 Frontend State Preservation
@@ -73,7 +78,21 @@ Processes an image using a single specified OCR engine.
         "engine_used": "manga_ocr",
         "extracted_text": "こんにちは世界",
         "translated_text": "Hello World",
-        "latency_ms": 450.5
+        "latency_ms": 450.5,
+        "advanced_analysis": [
+          {
+            "token": "こんにちは",
+            "furigana": "こんにちは",
+            "romaji": "konnichiha",
+            "meaning": "hello; good day"
+          },
+          {
+            "token": "世界",
+            "furigana": "せかい",
+            "romaji": "sekai",
+            "meaning": "world; society; universe"
+          }
+        ] // Optional: List[Dict[str, str]] - Activates strictly when advanced analysis payload is present.
       }
     }
     ```
@@ -93,13 +112,28 @@ Executes the image processing concurrently across all available engines for the 
             "engine": "manga_ocr",
             "extracted_text": "こんにちは世界",
             "translated_text": "Hello World",
-            "latency_ms": 450.5
+            "latency_ms": 450.5,
+            "advanced_analysis": [
+              {
+                "token": "こんにちは",
+                "furigana": "こんにちは",
+                "romaji": "konnichiha",
+                "meaning": "hello; good day"
+              },
+              {
+                "token": "世界",
+                "furigana": "せかい",
+                "romaji": "sekai",
+                "meaning": "world; society; universe"
+              }
+            ] // Optional: List[Dict[str, str]]
           },
           {
             "engine": "tesseract",
             "extracted_text": "こんには世界",
             "translated_text": "Kon'niwa World",
-            "latency_ms": 120.2
+            "latency_ms": 120.2,
+            "advanced_analysis": null // Optional/Null when deactivated or not applicable
           }
         ]
       }
