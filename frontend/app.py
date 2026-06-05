@@ -1,5 +1,6 @@
 import streamlit as st
-from PIL import Image
+from PIL import Image, ImageEnhance
+from streamlit_cropper import st_cropper
 
 
 st.set_page_config(
@@ -25,7 +26,28 @@ with st.sidebar:
 
     st.divider()
 
+    # Image Manipulation Controls
+    st.subheader("Image Adjustments")
 
+    grayscale = st.checkbox("Grayscale", value=False)
+
+    brightness = st.slider(
+        "Brightness",
+        min_value=0.0,
+        max_value=3.0,
+        value=1.0,
+        step=0.1,
+    )
+
+    contrast = st.slider(
+        "Contrast",
+        min_value=0.0,
+        max_value=3.0,
+        value=1.0,
+        step=0.1,
+    )
+
+    st.divider()
 
     # Target Language Selector
     target_lang = st.selectbox(
@@ -34,7 +56,6 @@ with st.sidebar:
         format_func=lambda x: {
             "en": "English",
             "id": "Bahasa Indonesia",
- 
         }[x],
     )
 
@@ -44,24 +65,55 @@ with st.sidebar:
 st.title("Welcome to Mieru")
 st.caption("Manga & Document OCR with Translation")
 
-# Two-column layout: Left = Input/Preview, Right = Output
-left_col, right_col = st.columns([1, 1])
+# ─────────────────────────────────────────────
+# Row 1: Image Upload, Cropper, and Preview
+# ─────────────────────────────────────────────
+st.subheader("Upload Image")
 
+uploaded_file = st.file_uploader(
+    "Drag and drop or browse an image",
+    type=["png", "jpg", "jpeg"],
+)
 
-with left_col:
-    st.subheader("Upload Image")
+if uploaded_file is not None:
+    image = Image.open(uploaded_file).convert("RGB")
 
-    uploaded_file = st.file_uploader(
-        "Drag and drop or browse an image",
-        type=["png", "jpg", "jpeg"],
-    )
+    # Row 1: Full original image (full width)
+    st.image(image, caption="Original Image", width=400)
 
-    if uploaded_file is not None:
-        # Load and display the uploaded image
-        image = Image.open(uploaded_file)
-        st.image(image, caption="Uploaded Image", use_container_width=True)
+    # Row 2: Cropper + Processed Preview side by side
+    st.divider()
+    crop_col, preview_col = st.columns([1, 1])
 
+    with crop_col:
+        st.caption("Drag and resize the box to select a crop region")
+        cropped_image = st_cropper(
+            image,
+            realtime_update=True,
+            box_color="red",
+            aspect_ratio=None,
+            return_type="image",
+            
+        )
 
-with right_col:
+    with preview_col:
+        preview = cropped_image
+
+        if grayscale:
+            preview = preview.convert("L").convert("RGB")
+
+        if brightness != 1.0:
+            preview = ImageEnhance.Brightness(preview).enhance(brightness)
+
+        if contrast != 1.0:
+            preview = ImageEnhance.Contrast(preview).enhance(contrast)
+
+        st.subheader("Processed Preview")
+        st.image(preview, use_container_width=True)
+
+    # ─────────────────────────────────────────────
+    # Row 3: Translation Results
+    # ─────────────────────────────────────────────
+    st.divider()
     st.subheader("Results")
     # tempat hasil
