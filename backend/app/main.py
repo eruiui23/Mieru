@@ -56,12 +56,17 @@ async def process_ocr(
         # 5. Translate the result
         translated_text = await translate_text(extracted_text, target_lang)
 
+        # 6. Perform advanced text analysis (e.g. Japanese dissection)
+        from backend.app.services.text_dissection import dissect_text
+        advanced_analysis = dissect_text(extracted_text)
+
         return OCRResponse(
             filename=file.filename or "unknown",
             engine=engine,
             extracted_text=extracted_text,
             translated_text=translated_text,
             execution_time_ms=latency_ms,
+            advanced_analysis=advanced_analysis if advanced_analysis else None,
         )
 
     except Exception as e:
@@ -86,14 +91,15 @@ async def compare_ocr(
 
         results = []
 
-        # Helper function to run a single engine concurrently
         async def run_engine(engine_name: str):
-            # execute_strategy is synchronous, so we run it in a threadpool to not block FastAPI
             loop = asyncio.get_running_loop()
             extracted_text, latency = await loop.run_in_executor(
                 None, ocr_context.execute_strategy, engine_name, image
             )
             translated_text = await translate_text(extracted_text, target_lang)
+
+            from backend.app.services.text_dissection import dissect_text
+            advanced_analysis = dissect_text(extracted_text)
 
             return OCRResponse(
                 filename=file.filename or "unknown",
@@ -101,6 +107,7 @@ async def compare_ocr(
                 extracted_text=extracted_text,
                 translated_text=translated_text,
                 execution_time_ms=latency,
+                advanced_analysis=advanced_analysis if advanced_analysis else None,
             )
 
         # Run all available engines concurrently using asyncio.gather
