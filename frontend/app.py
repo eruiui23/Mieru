@@ -1,5 +1,6 @@
 import io
 
+import pandas as pd
 import requests
 import streamlit as st
 from PIL import Image, ImageEnhance, ImageOps
@@ -186,20 +187,42 @@ if uploaded_file is not None:
         result = st.session_state["ocr_result"]
 
         if engine == "compare":
-            # Comparison mode results
+            # ─────────────────────────────────────────
+            # Comparison Mode View
+            # ─────────────────────────────────────────
             results_list = result.get("results", [])
             if results_list:
+                # Side-by-side results grid
                 cols = st.columns(len(results_list))
                 for i, r in enumerate(results_list):
                     with cols[i]:
                         st.markdown(f"**{r['engine']}**")
-                        st.caption(f"⏱️ {r['execution_time_ms']} ms")
+                        st.caption(f"{r['execution_time_ms']} ms")
+                        st.markdown("Extracted Text:")
                         st.code(r["extracted_text"], language=None)
-                        st.markdown(f"**Translation:** {r['translated_text']}")
+                        st.markdown("Translated Text:")
+                        st.code(r["translated_text"], language=None)
+
+                # Latency bar chart
+                st.markdown("**Performance Comparison**")
+
+                chart_data = pd.DataFrame({
+                    "Engine": [r["engine"] for r in results_list],
+                    "Latency (ms)": [r["execution_time_ms"] for r in results_list],
+                })
+                st.bar_chart(chart_data, x="Engine", y="Latency (ms)")
         else:
-            # Single engine results
-            st.caption(f"Engine: **{result.get('engine')}** | ⏱️ {result.get('execution_time_ms')} ms")
-            st.markdown("**Extracted Text:**")
-            st.code(result.get("extracted_text", ""), language=None)
-            st.markdown("**Translated Text:**")
-            st.code(result.get("translated_text", ""), language=None)
+            # ─────────────────────────────────────────
+            # Single Mode View
+            # ─────────────────────────────────────────
+            st.caption(f"Engine: **{result.get('engine')}** | {result.get('execution_time_ms')} ms")
+
+            text_col, translation_col = st.columns([1, 1])
+
+            with text_col:
+                st.markdown("**Extracted Text**")
+                st.code(result.get("extracted_text", ""), language=None)
+
+            with translation_col:
+                st.markdown("**Translated Text**")
+                st.code(result.get("translated_text", ""), language=None)

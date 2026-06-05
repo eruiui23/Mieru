@@ -47,11 +47,11 @@ This document breaks down the Software Requirements Specification (SRS) and Syst
   - Integrate a custom Streamlit image cropping component (e.g., `streamlit-cropper`) to allow users to isolate specific text bubbles.
   - Use Pillow (`ImageOps` and `ImageEnhance`) to apply Grayscale, Brightness, and Contrast adjustments directly to the uploaded image state.
   - Render the live image preview using this Pillow-processed image, and then convert it to a PNG byte array before sending it via `requests.post`.
-- [ ] **Task 3.3: API Integration & State Management**
+- [x] **Task 3.3: API Integration & State Management**
   - Implement Streamlit Session State (`st.session_state`) to cache cropping boundaries, ensuring slider micro-interactions do not clear or reset the active user crop.
   - Write the `requests.post` logic to send the image and parameters to the FastAPI backend.
   - Handle loading states (`st.spinner`) while waiting for the OCR engines to finish processing.
-- [ ] **Task 3.4: Build the Output Views**
+- [x] **Task 3.4: Build the Output Views**
   - Create the Single Mode view to display extracted and translated text using `st.markdown` and `st.code`.
   - Create the Comparison Mode view using columns to display results side-by-side, and integrate `st.bar_chart` to visualize the latency metrics.
 
