@@ -78,24 +78,34 @@ uploaded_files = st.file_uploader(
     type=["png", "jpg", "jpeg"],
     accept_multiple_files=True,
 )
+st.text(' ')
+st.text(' ')
+st.text(' ')
 
 if uploaded_files:
-    # Select which image to work with
+    # Row: Selectbox on left, Original image on right
+    image_col, select_col = st.columns([2, 2])
+
     image_options = [f"Image {i + 1}: {f.name}" for i, f in enumerate(uploaded_files)]
-    selected_idx = st.selectbox(
-        "Select Image",
-        range(len(uploaded_files)),
-        format_func=lambda i: image_options[i],
-        key="image_selector",
-    )
+
+    with select_col:
+        
+        selected_idx = st.selectbox(
+            "Select Image",
+            range(len(uploaded_files)),
+            format_func=lambda i: image_options[i],
+            key="image_selector",
+            width="stretch"
+        )
 
     idx = selected_idx
     uploaded_file = uploaded_files[idx]
     image = Image.open(uploaded_file).convert("RGB")
 
-    # Row 1: Full original image (full width)
-    st.caption("Original Image")
-    st.image(image, width=400)
+    with image_col:
+        _, center, _ = st.columns([2, 5, 2])
+        with center:
+            st.image(image, caption="Original Image", width=400)
 
     # Row 2: Cropper + Processed Preview side by side
     st.divider()
@@ -114,7 +124,7 @@ if uploaded_files:
         crop_box = st_cropper(
             cropper_display,
             realtime_update=True,
-            box_color="#001f54",
+            box_color="red",
             aspect_ratio=None,
             return_type="box",
             should_resize_image=False,
@@ -220,7 +230,7 @@ if uploaded_files:
                         st.code(r["translated_text"], language=None)
 
                         # Japanese Analysis expander per engine
-                        analysis = r.get("analysis")
+                        analysis = r.get("advanced_analysis")
                         if analysis:
                             with st.expander("文法 & 振り仮名 | Japanese Analysis (Furigana & Readings)"):
                                 df = pd.DataFrame(analysis)
@@ -246,7 +256,7 @@ if uploaded_files:
                 st.code(result.get("translated_text", ""), language=None)
 
             # Japanese Analysis expander for single mode
-            analysis = result.get("analysis")
+            analysis = result.get("advanced_analysis")
             if analysis:
                 with st.expander("文法 & 振り仮名 | Japanese Analysis (Furigana & Readings)"):
                     df = pd.DataFrame(analysis)
