@@ -28,12 +28,13 @@ class MangaOCRStrategy(OCREngine):
 class TesseractStrategy(OCREngine):
     def __init__(self):
         print("Initializing Tesseract Engine...")
-        import pytesseract  # type: ignore
+        import pytesseract  
 
         self.pytesseract = pytesseract
 
     def extract_text(self, image: Image.Image) -> str:
-        return self.pytesseract.image_to_string(image)
+        text = self.pytesseract.image_to_string(image, lang='jpn+jpn_vert')
+        return text.replace("\n", "").replace("\r", "").strip()
 
 
 # TODO: Phase 2.2 - Create EasyOCRStrategy class here
