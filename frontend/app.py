@@ -232,9 +232,8 @@ if uploaded_files:
                         # Japanese Analysis expander per engine
                         analysis = r.get("advanced_analysis")
                         if analysis:
-                            with st.expander("文法 & 振り仮名 | Japanese Analysis (Furigana & Readings)"):
-                                df = pd.DataFrame(analysis)
-                                st.dataframe(df, use_container_width=True)
+                            df = pd.DataFrame(analysis)
+                            st.dataframe(df, use_container_width=True)
 
                 st.markdown("**Performance Comparison**")
                 chart_data = pd.DataFrame({
@@ -258,6 +257,5 @@ if uploaded_files:
             # Japanese Analysis expander for single mode
             analysis = result.get("advanced_analysis")
             if analysis:
-                with st.expander("文法 & 振り仮名 | Japanese Analysis (Furigana & Readings)"):
-                    df = pd.DataFrame(analysis)
-                    st.dataframe(df, use_container_width=True)
+                df = pd.DataFrame(analysis)
+                st.dataframe(df, use_container_width=True)
