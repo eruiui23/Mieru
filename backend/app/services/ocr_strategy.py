@@ -37,8 +37,22 @@ class TesseractStrategy(OCREngine):
         return text.replace("\n", "").replace("\r", "").strip()
 
 
-# TODO: Phase 2.2 - Create EasyOCRStrategy class here
-#
+class EasyOCRStrategy(OCREngine):
+    def __init__(self):
+        print("Initializing EasyOCR Engine...")
+        import easyocr
+
+        self.reader = easyocr.Reader(['ja'])
+
+    def extract_text(self, image: Image.Image) -> str:
+        import numpy as np
+
+        # Convert PIL image to numpy array as EasyOCR handles it natively
+        img_np = np.array(image)
+        results = self.reader.readtext(img_np, detail=0)
+        return "".join(results).strip()
+
+
 # ---------------------------------------------------------
 # 4. The Context / Factory
 # ---------------------------------------------------------
@@ -48,7 +62,7 @@ class OCRContext:
         self.engines = {
             "manga_ocr": MangaOCRStrategy(),
             "tesseract": TesseractStrategy(),
-            # TODO: Phase 2.2 - Add "easyocr": EasyOCRStrategy() to this dictionary once implemented
+            "easyocr": EasyOCRStrategy(),
         }
 
     def execute_strategy(
