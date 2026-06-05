@@ -46,6 +46,7 @@ async def process_ocr(
 
         # 3. Load image directly using Pillow
         image = Image.open(BytesIO(image_bytes))
+        image.load()
 
         # 4. Execute the specific OCR Engine
         extracted_text, latency_ms = ocr_context.execute_strategy(
@@ -81,6 +82,7 @@ async def compare_ocr(
     try:
         image_bytes = await file.read()
         image = Image.open(BytesIO(image_bytes))
+        image.load()
 
         results = []
 
