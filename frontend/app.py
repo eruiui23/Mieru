@@ -219,6 +219,13 @@ if uploaded_files:
                         st.markdown("Translated Text:")
                         st.code(r["translated_text"], language=None)
 
+                        # Japanese Analysis expander per engine
+                        analysis = r.get("analysis")
+                        if analysis:
+                            with st.expander("文法 & 振り仮名 | Japanese Analysis (Furigana & Readings)"):
+                                df = pd.DataFrame(analysis)
+                                st.dataframe(df, use_container_width=True)
+
                 st.markdown("**Performance Comparison**")
                 chart_data = pd.DataFrame({
                     "Engine": [r["engine"] for r in results_list],
@@ -237,3 +244,10 @@ if uploaded_files:
             with translation_col:
                 st.markdown("**Translated Text**")
                 st.code(result.get("translated_text", ""), language=None)
+
+            # Japanese Analysis expander for single mode
+            analysis = result.get("analysis")
+            if analysis:
+                with st.expander("文法 & 振り仮名 | Japanese Analysis (Furigana & Readings)"):
+                    df = pd.DataFrame(analysis)
+                    st.dataframe(df, use_container_width=True)
