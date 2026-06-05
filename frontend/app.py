@@ -233,6 +233,7 @@ if uploaded_files:
                         analysis = r.get("advanced_analysis")
                         if analysis:
                             df = pd.DataFrame(analysis)
+                            df.index = df.index + 1
                             st.dataframe(df, use_container_width=True)
 
                 st.markdown("**Performance Comparison**")
@@ -258,4 +259,5 @@ if uploaded_files:
             analysis = result.get("advanced_analysis")
             if analysis:
                 df = pd.DataFrame(analysis)
+                df.index = df.index + 1
                 st.dataframe(df, use_container_width=True)
