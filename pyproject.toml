@@ -15,4 +15,5 @@ dependencies = [
     "uvicorn>=0.48.0",
     "legacy-cgi",
     "pytesseract",
+    "easyocr",
 ]
