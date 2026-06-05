@@ -1,4 +1,3 @@
-# TODO: implement the tesseract and EasyOCR strategies
 import time
 from abc import ABC, abstractmethod
 
@@ -7,10 +6,6 @@ from PIL import Image
 class OCREngine(ABC):
     @abstractmethod
     def extract_text(self, image: Image.Image) -> str:
-        """
-        Takes a processed PIL Image and returns the extracted text string.
-        Must be implemented by all subclasses.
-        """
         pass
 
 
@@ -47,18 +42,13 @@ class EasyOCRStrategy(OCREngine):
     def extract_text(self, image: Image.Image) -> str:
         import numpy as np
 
-        # Convert PIL image to numpy array as EasyOCR handles it natively
         img_np = np.array(image)
         results = self.reader.readtext(img_np, detail=0)
         return "".join(results).strip()
 
 
-# ---------------------------------------------------------
-# 4. The Context / Factory
-# ---------------------------------------------------------
 class OCRContext:
     def __init__(self):
-        # We instantiate the models once when the server starts to save time
         self.engines = {
             "manga_ocr": MangaOCRStrategy(),
             "tesseract": TesseractStrategy(),
@@ -68,21 +58,15 @@ class OCRContext:
     def execute_strategy(
         self, engine_name: str, image: Image.Image
     ) -> tuple[str, float]:
-        """
-        Executes the selected engine and calculates execution time.
-        """
         if engine_name not in self.engines:
             raise ValueError(f"OCR Engine '{engine_name}' is not supported.")
 
         engine = self.engines[engine_name]
 
-        # Start the timer
         start_time = time.perf_counter()
 
-        # Execute the extraction
         text = engine.extract_text(image)
 
-        # Stop the timer and convert to milliseconds
         end_time = time.perf_counter()
         latency_ms = round((end_time - start_time) * 1000, 2)
 
