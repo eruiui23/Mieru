@@ -33,19 +33,17 @@ class MangaOCRStrategy(OCREngine):
 
 
 # ---------------------------------------------------------
-# 3. Concrete Strategy B: Tesseract (Simulation for now)
+# 3. Concrete Strategy B: Tesseract
 # ---------------------------------------------------------
 class TesseractStrategy(OCREngine):
     def __init__(self):
         print("Initializing Tesseract Engine...")
-        # TODO: Phase 2.2 - Uncomment and import pytesseract when installing the C++ engine
-        # import pytesseract
+        import pytesseract  # type: ignore
+
+        self.pytesseract = pytesseract
 
     def extract_text(self, image: Image.Image) -> str:
-        # TODO: Phase 2.2 - Replace sleep simulation with actual pytesseract.image_to_string()
-        # return pytesseract.image_to_string(image)
-        time.sleep(0.5)  # Simulate processing time
-        return "Tesseract simulation: Extracted text goes here."
+        return self.pytesseract.image_to_string(image)
 
 
 # TODO: Phase 2.2 - Create EasyOCRStrategy class here
