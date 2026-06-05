@@ -10,9 +10,9 @@
 The application utilizes a decoupled client-server architecture. To ensure high maintainability and testability, the backend is designed around **Clean Architecture** principles. This isolates the core business rules (OCR processing and image manipulation) from the delivery mechanism (FastAPI) and external dependencies (OCR libraries and translation APIs).
 
 ### 1.1 High-Level Architecture
-* **Presentation Layer (Frontend):** Built with **Streamlit**. It acts solely as the user interface, handling DOM rendering, state management for user inputs (sliders, toggles), and HTTP communication.
-* **Application/Domain Layer (Backend):** Built with **FastAPI**. It handles routing, request validation via Pydantic, and orchestrates the image processing pipeline.
-* **Infrastructure Layer:** Contains the actual implementations of the external OCR engines (`manga-ocr`, `pytesseract`, `easyocr`), image processing libraries (`OpenCV`, `Pillow`), and translation services.
+* **Presentation Layer (Frontend):** Built with **Streamlit**. It handles DOM rendering, state management for user inputs (sliders, toggles), image manipulation/processing using Pillow (applying grayscale, brightness, and contrast adjustments), and HTTP communication.
+* **Application/Domain Layer (Backend):** Built with **FastAPI**. It handles routing, request validation via Pydantic, and orchestrates the OCR execution and translation pipeline.
+* **Infrastructure Layer:** Contains the actual implementations of the external OCR engines (`manga-ocr`, `pytesseract`, `easyocr`) and translation services. Image processing libraries (Pillow) are now handled in the Presentation Layer.
 
 ---
 
@@ -64,9 +64,6 @@ Processes an image using a single specified OCR engine.
 * **Request Form-Data:**
     * `file`: The uploaded image file (`image/jpeg` or `image/png`).
     * `engine`: String (e.g., `"manga_ocr"`, `"tesseract"`).
-    * `grayscale`: Boolean.
-    * `brightness`: Float (e.g., `1.0` for default).
-    * `contrast`: Float (e.g., `1.0` for default).
     * `target_lang`: String (e.g., `"en"`, `"id"`).
 * **Response (JSON - 200 OK):**
     ```json
@@ -115,13 +112,10 @@ Executes the image processing concurrently across all available engines for the 
 
 When the Streamlit client sends an image and parameters to the FastAPI backend, the data flows through the following pipeline:
 
-1. **Ingestion & Validation:** FastAPI receives the multipart form data. The request values are validated and coerced into their strict primitive data types via FastAPI `Form(...)` handlers matching Pydantic-backed parameter rules.
-2. **Pre-processing (OpenCV/Pillow):**
-    * The image byte stream is loaded into an array.
-    * If `grayscale=True`, the color channels are collapsed.
-    * Brightness and contrast matrices are applied based on the slider values.
-3. **OCR Execution (Strategy Context):**
-    * The processed image matrix is passed to the selected engine(s).
+1. **Ingestion & Validation:** FastAPI receives the multipart form data (the pre-optimized image and other parameters). The request values are validated and coerced into their strict primitive data types via FastAPI `Form(...)` handlers matching Pydantic-backed parameter rules.
+2. **OCR Execution (Strategy Context):**
+    * FastAPI receives the pre-optimized image and passes it directly to the OCR engines without further manipulation.
+    * The image byte stream is passed to the selected engine(s).
     * For the `/compare` endpoint, execution runs asynchronously using Python's `asyncio.gather()` to prevent engine bottlenecks.
-4. **Post-processing (Translation):** The extracted text strings are routed to the translation API module.
-5. **Response Delivery:** The latency metrics, raw text, and translated text are packaged into a JSON response and returned to the client.
+3. **Post-processing (Translation):** The extracted text strings are routed to the translation API module.
+4. **Response Delivery:** The latency metrics, raw text, and translated text are packaged into a JSON response and returned to the client.
