@@ -18,4 +18,6 @@ dependencies = [
     "pytesseract",
     "easyocr",
     "pykakasi",
+    "jamdict",
+    "jamdict-data",
 ]

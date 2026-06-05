@@ -74,8 +74,8 @@ This document breaks down the Software Requirements Specification (SRS) and Syst
 ## Phase 5: Advanced Features
 *Goal: Integrate linguistic analysis and other modular advanced features.*
 
-- [ ] **Task 5.1: Backend Text Dissection Pipeline:** Integrate a text parser (like pykakasi) and a dictionary engine (like jamdict) into the backend services layer to dissect raw text strings into structured dictionaries containing tokens, furigana, rōmaji, and English definitions.
-- [ ] **Task 5.2: API Schema Extension:** Update the backend endpoints and Pydantic response models (`OCRResponse`) to include an optional data payload field for advanced analysis, ensuring backwards compatibility.
+- [x] **Task 5.1: Backend Text Dissection Pipeline:** Integrate a text parser (like pykakasi) and a dictionary engine (like jamdict) into the backend services layer to dissect raw text strings into structured dictionaries containing tokens, furigana, rōmaji, and English definitions.
+- [x] **Task 5.2: API Schema Extension:** Update the backend endpoints and Pydantic response models (`OCRResponse`) to include an optional data payload field for advanced analysis, ensuring backwards compatibility.
 - [ ] **Task 5.3: Frontend Accordion Dropdown (Option B):** Implement an `st.expander` named "文法 & 振り仮名 | Japanese Analysis (Furigana & Readings)" sitting right below the Extracted/Translated text block, which renders the payload (token, furigana, romaji, and meaning) inside a clean, conditional `st.dataframe`.
 
 ---
