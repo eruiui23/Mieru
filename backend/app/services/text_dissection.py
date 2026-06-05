@@ -34,7 +34,7 @@ def dissect_text(text: str) -> List[Dict[str, Any]]:
                     print(f"Jamdict lookup failed for token '{token}': {lookup_err}")
             
             analysis.append({
-                "token": token,
+                "word": token,
                 "furigana": furigana,
                 "romaji": romaji,
                 "meaning": meaning
