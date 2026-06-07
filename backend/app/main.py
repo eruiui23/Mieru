@@ -81,6 +81,7 @@ async def process_ocr(
     file: UploadFile = File(...),
     engine: str = Form(...),
     target_lang: str = Form("en"),
+    full_image_ref: str = Form(""),
 ):
     # 1. Validate File Type
     if not file.content_type or not file.content_type.startswith("image/"):
@@ -108,12 +109,16 @@ async def process_ocr(
 
         # 7. Save to persistent database history
         try:
+            db_image_path = full_image_ref
+            if not db_image_path:
+                db_image_path = save_uploaded_image(file.filename or "crop.png", image_bytes)
+                
             save_history(
                 filename=file.filename or "unknown",
                 engine=engine,
                 extracted_text=extracted_text,
                 translated_text=translated_text,
-                image_bytes=image_bytes,
+                image_path=db_image_path,
             )
         except Exception as db_err:
             # Prevent DB logging failures from failing the entire OCR request
@@ -139,6 +144,7 @@ async def process_ocr(
 async def compare_ocr(
     file: UploadFile = File(...),
     target_lang: str = Form("en"),
+    full_image_ref: str = Form(""),
 ):
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image.")
@@ -147,6 +153,10 @@ async def compare_ocr(
         image_bytes = await file.read()
         image = Image.open(BytesIO(image_bytes))
         image.load()
+
+        db_image_path = full_image_ref
+        if not db_image_path:
+            db_image_path = save_uploaded_image(file.filename or "crop.png", image_bytes)
 
         results = []
 
@@ -167,7 +177,7 @@ async def compare_ocr(
                     engine=engine_name,
                     extracted_text=extracted_text,
                     translated_text=translated_text,
-                    image_bytes=image_bytes,
+                    image_path=db_image_path,
                 )
             except Exception as db_err:
                 print(f"Error saving OCR history for comparison engine {engine_name}: {db_err}")

@@ -9,3 +9,4 @@ wheels/
 # Virtual environments
 .venv
 backend/static/uploads/*
+backend/mieru.db
