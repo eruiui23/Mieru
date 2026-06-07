@@ -12,7 +12,7 @@ from backend.app.services.translation import translate_text
 
 import os
 from fastapi.staticfiles import StaticFiles
-from backend.app.services.database import init_db
+from backend.app.services.database import init_db, save_history, get_history
 
 app = FastAPI(title="Manga & Document OCR Application API")
 
@@ -41,6 +41,17 @@ ocr_context = OCRContext()
 @app.get("/")
 async def root():
     return {"status": "OCR Backend API is active"}
+
+
+@app.get("/api/history")
+async def get_history_log():
+    try:
+        records = get_history()
+        return {"status": "success", "data": records}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to fetch history: {str(e)}"
+        )
 
 
 @app.post("/api/ocr", response_model=OCRResponse)
@@ -72,6 +83,19 @@ async def process_ocr(
         # 6. Perform advanced text analysis (e.g. Japanese dissection)
         from backend.app.services.text_dissection import dissect_text
         advanced_analysis = dissect_text(extracted_text)
+
+        # 7. Save to persistent database history
+        try:
+            save_history(
+                filename=file.filename or "unknown",
+                engine=engine,
+                extracted_text=extracted_text,
+                translated_text=translated_text,
+                image_bytes=image_bytes,
+            )
+        except Exception as db_err:
+            # Prevent DB logging failures from failing the entire OCR request
+            print(f"Error saving OCR history: {db_err}")
 
         return OCRResponse(
             filename=file.filename or "unknown",
@@ -113,6 +137,18 @@ async def compare_ocr(
 
             from backend.app.services.text_dissection import dissect_text
             advanced_analysis = dissect_text(extracted_text)
+
+            # Save to persistent database history for this engine result
+            try:
+                save_history(
+                    filename=file.filename or "unknown",
+                    engine=engine_name,
+                    extracted_text=extracted_text,
+                    translated_text=translated_text,
+                    image_bytes=image_bytes,
+                )
+            except Exception as db_err:
+                print(f"Error saving OCR history for comparison engine {engine_name}: {db_err}")
 
             return OCRResponse(
                 filename=file.filename or "unknown",
