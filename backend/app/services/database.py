@@ -35,17 +35,10 @@ def init_db():
     finally:
         conn.close()
 
-def save_history(
-    filename: str,
-    engine: str,
-    extracted_text: str,
-    translated_text: str,
-    image_bytes: bytes
-) -> str:
+def save_uploaded_image(filename: str, image_bytes: bytes) -> str:
     """
-    Saves incoming image bytes to the local upload directory with a unique filename
-    to prevent collision, and writes a log entry into the SQLite ocr_history table.
-    Returns the relative image path reference (e.g. 'static/uploads/filename').
+    Saves incoming raw image bytes to the local upload directory with a unique filename
+    to prevent collision. Returns the relative image path reference (e.g. 'static/uploads/filename').
     """
     # Ensure directory exists
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -59,21 +52,28 @@ def save_history(
     with open(target_path, "wb") as f:
         f.write(image_bytes)
         
-    # Relative path reference for database and client serving
-    image_path_ref = f"static/uploads/{unique_filename}"
-    
+    return f"static/uploads/{unique_filename}"
+
+def save_history(
+    filename: str,
+    engine: str,
+    extracted_text: str,
+    translated_text: str,
+    image_path: str
+) -> None:
+    """
+    Writes a log entry into the SQLite ocr_history table using the provided image path reference.
+    """
     conn = sqlite3.connect(str(DB_PATH))
     try:
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO ocr_history (filename, engine, extracted_text, translated_text, image_path)
             VALUES (?, ?, ?, ?, ?);
-        """, (filename, engine, extracted_text, translated_text, image_path_ref))
+        """, (filename, engine, extracted_text, translated_text, image_path))
         conn.commit()
     finally:
         conn.close()
-        
-    return image_path_ref
 
 def get_history() -> List[Dict[str, Any]]:
     """
