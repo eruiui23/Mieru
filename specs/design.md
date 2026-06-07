@@ -54,8 +54,13 @@ The frontend session state tracks the current active view. Based on this value, 
     * **Database Audit Log Table:** Displays a clean, structural database audit log of all successful OCR operations using an interactive `st.dataframe`. Contains columns: ID, Timestamp, Filename, Engine Used, Extracted Text, and Translated Text.
     * **Historical Detail Viewer:** Below or side-by-side with the database table, when a user selects/clicks a historical log row, the interface dynamically displays the archived original image side-by-side with its past extracted text and translated text for direct, comparative reading.
 
-### 2.2 Frontend State Preservation
+### 2.2 Frontend State Preservation and Asset State Machine
 Because Streamlit re-executes the entire script upon any widget modification (such as moving the brightness or contrast sliders), the application leverages `st.session_state` to store user cropping boundaries. This mechanism protects crop states from being reset during subsequent pipeline parameter adjustments.
+
+Furthermore, a two-step state-machine governs raw image uploads to prevent redundant network transmissions of the large original file during iterative cropping adjustments:
+1. **Immediate Upload Hook:** The instant a file is added via the `st.file_uploader`, it triggers a background upload (`POST /api/upload`) containing only the full, original image.
+2. **Backend Reference Caching:** The backend stores the original asset and returns a string identifier (`full_image_ref`). The Streamlit frontend caches this identifier in `st.session_state` indexed by the file slot.
+3. **Execution Linkage:** When the user clicks "Process Image", only the tiny cropped crop bytes are sent along with the cached `full_image_ref` token. The backend processes the crop but logs the original image path referenced by `full_image_ref` to the SQLite history log database, ensuring high resolution audit trails with zero redundant uploads.
 
 ---
 
@@ -80,9 +85,10 @@ The backend exposes RESTful endpoints to communicate with the Streamlit client. 
 Processes an image using a single specified OCR engine.
 
 * **Request Form-Data:**
-    * `file`: The uploaded image file (`image/jpeg` or `image/png`).
+    * `file`: The uploaded cropped image file (`image/jpeg` or `image/png`).
     * `engine`: String (e.g., `"manga_ocr"`, `"tesseract"`).
     * `target_lang`: String (e.g., `"en"`, `"id"`).
+    * `full_image_ref`: String (relative URL path pointing to the cached raw original image on the server, e.g., `"static/uploads/uuid.png"`).
 * **Response (JSON - 200 OK):**
     ```json
     {
@@ -182,6 +188,20 @@ Queries the SQLite persistent database for past OCR executions and returns them 
           "image_path": "static/uploads/document.png"
         }
       ]
+    }
+    ```
+
+### 4.4 `POST /api/upload`
+Uploads the raw, uncropped file immediately upon user drop and saves it to the local server uploads directory.
+
+* **Request Form-Data:**
+    * `file`: The uploaded original image file (`image/jpeg` or `image/png`).
+* **Response (JSON - 200 OK):**
+    ```json
+    {
+      "status": "success",
+      "filename": "manga_page_1.png",
+      "full_image_ref": "static/uploads/7b189283-99fa-45b3-8c4d-2a839a8c17b2.png"
     }
     ```
 
