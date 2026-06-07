@@ -10,7 +10,20 @@ from backend.app.models.schemas import ComparisonResponse, OCRResponse
 from backend.app.services.ocr_strategy import OCRContext
 from backend.app.services.translation import translate_text
 
+import os
+from fastapi.staticfiles import StaticFiles
+from backend.app.services.database import init_db
+
 app = FastAPI(title="Manga & Document OCR Application API")
+
+@app.on_event("startup")
+def startup_event():
+    init_db()
+
+# Mount the static directory to serve uploaded history images
+STATIC_DIR = os.path.join(os.path.dirname(__file__), "..", "static")
+os.makedirs(STATIC_DIR, exist_ok=True)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # Add CORS Middleware to allow Streamlit (usually running on port 8501) to talk to FastAPI
 app.add_middleware(
