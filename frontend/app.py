@@ -31,67 +31,89 @@ if config["navigation"] == "OCR Workspace":
     st.caption("Manga & Document OCR with Translation")
     st.subheader("Upload Image")
 
+    # Initialize cache in session state if not present
+    if "uploaded_images_cache" not in st.session_state:
+        st.session_state["uploaded_images_cache"] = {}
+
     uploaded_files = st.file_uploader(
         "Drag and drop or browse images",
         type=["png", "jpg", "jpeg"],
         accept_multiple_files=True,
     )
     st.text(' ')
-    st.text(' ')
-    st.text(' ')
 
+    # 1. Process files currently in the file uploader and add them to cache
     if uploaded_files:
-        # Instantly pre-upload all uploaded files to cache reference keys
         for f in uploaded_files:
-            state_key = f"full_image_ref_{f.name}"
-            if state_key not in st.session_state:
+            if f.name not in st.session_state["uploaded_images_cache"]:
                 f.seek(0)
                 file_bytes = f.read()
-                f.seek(0)  # Reset pointer
+                f.seek(0)
                 try:
-                    with st.spinner(f"Pre-uploading {f.name} to server..."):
-                        upload_resp = upload_image(f.name, file_bytes)
-                        if upload_resp.status_code == 200:
-                            ref_path = upload_resp.json().get("full_image_ref", "")
-                            st.session_state[state_key] = ref_path
-                        else:
-                            st.error(f"Failed to pre-upload {f.name}: {upload_resp.status_code}")
+                    img = Image.open(f).convert("RGB")
+                    # Cache the image and its bytes
+                    st.session_state["uploaded_images_cache"][f.name] = (img, file_bytes)
                 except Exception as e:
-                    st.error(f"Error uploading original image {f.name}: {str(e)}")
+                    st.error(f"Error loading {f.name}: {str(e)}")
+                    continue
+
+                # Also trigger the background upload to get full_image_ref
+                state_key = f"full_image_ref_{f.name}"
+                if state_key not in st.session_state:
+                    try:
+                        with st.spinner(f"Pre-uploading {f.name} to server..."):
+                            upload_resp = upload_image(f.name, file_bytes)
+                            if upload_resp.status_code == 200:
+                                ref_path = upload_resp.json().get("full_image_ref", "")
+                                st.session_state[state_key] = ref_path
+                            else:
+                                st.error(f"Failed to pre-upload {f.name}: {upload_resp.status_code}")
+                    except Exception as e:
+                        st.error(f"Error uploading original image {f.name}: {str(e)}")
+
+    # 2. If the cache is not empty, display the workspace
+    cached_filenames = list(st.session_state["uploaded_images_cache"].keys())
+    
+    if cached_filenames:
+        # Add a clear cache button in a clean placement
+        if st.button("Clear All Uploaded Images"):
+            st.session_state["uploaded_images_cache"] = {}
+            st.rerun()
 
         # Row: Selectbox on left, Original image on right
         image_col, select_col = st.columns([2, 2])
 
-        image_options = [f"Image {i + 1}: {f.name}" for i, f in enumerate(uploaded_files)]
+        image_options = [f"{i + 1}: {name}" for i, name in enumerate(cached_filenames)]
 
         with select_col:
             selected_idx = st.selectbox(
-                "Select Image",
-                range(len(uploaded_files)),
+                "Select Image to Edit/Process",
+                range(len(cached_filenames)),
                 format_func=lambda i: image_options[i],
                 key="image_selector",
                 width="stretch"
             )
 
         idx = selected_idx
-        uploaded_file = uploaded_files[idx]
-        image = Image.open(uploaded_file).convert("RGB")
+        selected_filename = cached_filenames[idx]
+        image, file_bytes = st.session_state["uploaded_images_cache"][selected_filename]
 
         with image_col:
             _, center, _ = st.columns([2, 5, 2])
             with center:
-                st.image(image, caption="Original Image", width=400)
+                st.image(image, caption=f"Selected: {selected_filename}", width=400)
 
         # Row 2: Cropper + Processed Preview side by side
         st.divider()
-        processed_image_bytes = render_image_editor(image, config, idx)
-        st.session_state[f"processed_image_bytes_{idx}"] = processed_image_bytes
+        # Pass selected_filename as the unique identifier for key storage
+        processed_image_bytes = render_image_editor(image, config, selected_filename)
+        st.session_state[f"processed_image_bytes_{selected_filename}"] = processed_image_bytes
 
         # Row 3: Process Button & Results
         st.divider()
 
-        if st.button("Process Image", type="primary", key=f"process_{idx}"):
-            image_bytes = st.session_state.get(f"processed_image_bytes_{idx}")
+        if st.button("Process Image", type="primary", key=f"process_{selected_filename}"):
+            image_bytes = st.session_state.get(f"processed_image_bytes_{selected_filename}")
 
             if image_bytes is None:
                 st.error("No processed image available.")
@@ -99,7 +121,7 @@ if config["navigation"] == "OCR Workspace":
                 with st.spinner("Processing OCR..."):
                     try:
                         # Retrieve the cached original image reference key
-                        ref_key = f"full_image_ref_{uploaded_file.name}"
+                        ref_key = f"full_image_ref_{selected_filename}"
                         full_image_ref = st.session_state.get(ref_key, "")
 
                         response = perform_ocr(
@@ -110,7 +132,7 @@ if config["navigation"] == "OCR Workspace":
                         )
 
                         if response.status_code == 200:
-                            st.session_state[f"ocr_result_{idx}"] = response.json()
+                            st.session_state[f"ocr_result_{selected_filename}"] = response.json()
                         else:
                             st.error(
                                 f"Backend error ({response.status_code}): "
@@ -123,8 +145,8 @@ if config["navigation"] == "OCR Workspace":
                         st.error(f"An error occurred: {str(e)}")
 
         # Display results
-        if f"ocr_result_{idx}" in st.session_state:
-            render_results(st.session_state[f"ocr_result_{idx}"], config["engine"])
+        if f"ocr_result_{selected_filename}" in st.session_state:
+            render_results(st.session_state[f"ocr_result_{selected_filename}"], config["engine"])
 
 else:
     # Dedicated History Log View

@@ -14,7 +14,11 @@ class MangaOCRStrategy(OCREngine):
         print("Initializing Manga-OCR Model (This takes a moment)...")
         from manga_ocr import MangaOcr
 
-        self.mocr = MangaOcr()
+        try:
+            self.mocr = MangaOcr()
+        except Exception as e:
+            print(f"Failed to initialize MangaOcr with CUDA/default device: {e}. Falling back to CPU...")
+            self.mocr = MangaOcr(force_cpu=True)
 
     def extract_text(self, image: Image.Image) -> str:
         return self.mocr(image)
@@ -37,7 +41,11 @@ class EasyOCRStrategy(OCREngine):
         print("Initializing EasyOCR Engine...")
         import easyocr
 
-        self.reader = easyocr.Reader(['ja'])
+        try:
+            self.reader = easyocr.Reader(['ja'])
+        except Exception as e:
+            print(f"Failed to initialize EasyOCR with GPU: {e}. Falling back to CPU...")
+            self.reader = easyocr.Reader(['ja'], gpu=False)
 
     def extract_text(self, image: Image.Image) -> str:
         import numpy as np

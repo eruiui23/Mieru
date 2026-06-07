@@ -37,7 +37,7 @@ def render_sidebar() -> dict:
                 "OCR Engine",
                 options=["manga_ocr", "tesseract", "easyocr", "compare"],
                 format_func=lambda x: {
-                    "manga_ocr": "Manga-OCR (Japanese)",
+                    "manga_ocr": "Manga-OCR",
                     "tesseract": "Tesseract",
                     "easyocr": "EasyOCR",
                     "compare": "Run All (Compare)",
