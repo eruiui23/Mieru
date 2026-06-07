@@ -12,7 +12,7 @@ from backend.app.services.translation import translate_text
 
 import os
 from fastapi.staticfiles import StaticFiles
-from backend.app.services.database import init_db, save_history, get_history
+from backend.app.services.database import init_db, save_history, get_history, save_uploaded_image
 
 app = FastAPI(title="Manga & Document OCR Application API")
 
@@ -52,6 +52,28 @@ async def get_history_log():
         raise HTTPException(
             status_code=500, detail=f"Failed to fetch history: {str(e)}"
         )
+
+
+@app.post("/api/upload")
+async def upload_original_image(file: UploadFile = File(...)):
+    """
+    Uploads and saves the raw original uncropped image, returning its reference key.
+    """
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image.")
+        
+    try:
+        image_bytes = await file.read()
+        image_path_ref = save_uploaded_image(file.filename or "unknown", image_bytes)
+        return {
+            "status": "success",
+            "filename": file.filename or "unknown",
+            "full_image_ref": image_path_ref
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+    finally:
+        await file.close()
 
 
 @app.post("/api/ocr", response_model=OCRResponse)
