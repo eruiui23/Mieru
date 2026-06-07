@@ -12,19 +12,25 @@ The application utilizes a decoupled client-server architecture. To ensure high 
 ### 1.1 High-Level Architecture
 * **Presentation Layer (Frontend):** Built with **Streamlit**. It handles DOM rendering, state management for user inputs (sliders, toggles), image manipulation/processing using Pillow (applying grayscale, brightness, and contrast adjustments), and HTTP communication.
 * **Application/Domain Layer (Backend):** Built with **FastAPI**. It handles routing, request validation via Pydantic, and orchestrates the OCR execution and translation pipeline.
-* **Infrastructure Layer:** Contains the actual implementations of the external OCR engines (`manga-ocr`, `pytesseract`, `easyocr`) and translation services. Image processing libraries (Pillow) are now handled in the Presentation Layer.
+* **Infrastructure Layer:** Contains the actual implementations of the external OCR engines (`manga-ocr`, `pytesseract`, `easyocr`), translation services, and the **SQLite** persistence layer. Image processing libraries (Pillow) are now handled in the Presentation Layer.
 
 ### 1.2 Phase 5: Advanced Features Subsystem
 * **Modular Advanced Services:** The advanced features module (including any text dissection, tokenization, or linguistic parsing components, such as `pykakasi`) attaches modularly to the backend domain/services layer. This keeps the core OCR engine implementations (`OCREngine` subclasses) cleanly isolated from downstream text analysis, conforming to the Single Responsibility Principle and ensuring ease of extension for future features.
+* **Persistent Storage History:** An SQLite database is integrated into the backend infrastructure to provide persistent regional storage for all processed OCR events. The schema logs metadata, extracted outputs, and the local image file path reference (`id`, `timestamp`, `filename`, `engine`, `extracted_text`, `translated_text`, `image_path`), decoupling workspace sessions from server uptime. To serve these historical image files back to the frontend client, the FastAPI backend mounts a `fastapi.staticfiles.StaticFiles` instance at `/static` referencing the local storage directory (`backend/static/uploads/`).
 
 ---
 
 ## 2. User Interface (UI) Layout & State Design
 
-The Streamlit interface is divided into functional zones to provide a seamless user experience.
+The Streamlit interface is divided into functional zones to provide a seamless user experience. It operates as a dual-state view machine controlled by a navigation router in the sidebar.
 
-### 2.1 Main Application Layout
+### 2.1 Dual-State Main Application Layout
+
+The frontend session state tracks the current active view. Based on this value, the main page renders one of two dedicated view modes:
+
+#### 2.1.1 View A: Workspace Mode (OCR Workstation)
 * **Sidebar (Configuration Panel):**
+    * **Navigation Panel:** State switching buttons/router to toggle between "OCR Workspace" and "View History Log".
     * **Engine Selector:** Dropdown to select the OCR Engine (Manga-OCR, Tesseract, EasyOCR, or "Run All" for comparison).
     * **Image Manipulator:**
         * Grayscale Toggle (Checkbox).
@@ -40,6 +46,13 @@ The Streamlit interface is divided into functional zones to provide a seamless u
         * Displays extracted raw text and the translated text in copyable markdown blocks.
         * **Advanced Analysis (Optional Expander):** A conditional `st.expander` titled "文法 & 振り仮名 | Japanese Analysis (Furigana & Readings)" that renders a dataframe containing word-level details (`word`, `furigana`, `romaji`, `meaning`). This is a conditional layout block that remains hidden unless the advanced payload is present.
     * *Comparison Mode:* Displays a side-by-side grid of text outputs from all engines, along with a bar chart plotting the execution latency of each engine.
+
+#### 2.1.2 View B: Dedicated History Mode (Database Audit Log & Detail Viewer)
+* **Sidebar (Configuration Panel):**
+    * **Navigation Panel:** Same state switching buttons/router to return to "OCR Workspace".
+* **Main Window:**
+    * **Database Audit Log Table:** Displays a clean, structural database audit log of all successful OCR operations using an interactive `st.dataframe`. Contains columns: ID, Timestamp, Filename, Engine Used, Extracted Text, and Translated Text.
+    * **Historical Detail Viewer:** Below or side-by-side with the database table, when a user selects/clicks a historical log row, the interface dynamically displays the archived original image side-by-side with its past extracted text and translated text for direct, comparative reading.
 
 ### 2.2 Frontend State Preservation
 Because Streamlit re-executes the entire script upon any widget modification (such as moving the brightness or contrast sliders), the application leverages `st.session_state` to store user cropping boundaries. This mechanism protects crop states from being reset during subsequent pipeline parameter adjustments.
@@ -137,6 +150,38 @@ Executes the image processing concurrently across all available engines for the 
           }
         ]
       }
+    }
+    ```
+
+### 4.3 `GET /api/history`
+Queries the SQLite persistent database for past OCR executions and returns them sorted by the most recent timestamp.
+
+* **Request Parameters:**
+    * *(None)*
+* **Response (JSON - 200 OK):**
+    ```json
+    {
+      "status": "success",
+      "data": [
+        {
+          "id": 2,
+          "timestamp": "2026-06-07T15:43:29Z",
+          "filename": "manga_page_1.png",
+          "engine": "manga_ocr",
+          "extracted_text": "こんにちは世界",
+          "translated_text": "Hello World",
+          "image_path": "static/uploads/manga_page_1.png"
+        },
+        {
+          "id": 1,
+          "timestamp": "2026-06-07T15:30:15Z",
+          "filename": "document.png",
+          "engine": "tesseract",
+          "extracted_text": "Hello, this is a test.",
+          "translated_text": "Hello, this is a test.",
+          "image_path": "static/uploads/document.png"
+        }
+      ]
     }
     ```
 
