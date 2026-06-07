@@ -28,3 +28,11 @@ def perform_ocr(image_bytes: bytes, engine: str, target_lang: str) -> requests.R
         files={"file": ("image.png", image_bytes, "image/png")},
         data=data,
     )
+
+
+def fetch_history() -> requests.Response:
+    """
+    Fetches the OCR history from the backend.
+    """
+    url = f"{API_BASE_URL}/api/history"
+    return requests.get(url)
