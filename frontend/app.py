@@ -13,7 +13,7 @@ from PIL import Image
 from frontend.components.sidebar import render_sidebar
 from frontend.components.image_editor import render_image_editor
 from frontend.components.results import render_results
-from frontend.services.api import perform_ocr, fetch_history
+from frontend.services.api import perform_ocr, fetch_history, upload_image
 
 # Page configuration setup
 st.set_page_config(
@@ -41,6 +41,24 @@ if config["navigation"] == "OCR Workspace":
     st.text(' ')
 
     if uploaded_files:
+        # Instantly pre-upload all uploaded files to cache reference keys
+        for f in uploaded_files:
+            state_key = f"full_image_ref_{f.name}"
+            if state_key not in st.session_state:
+                f.seek(0)
+                file_bytes = f.read()
+                f.seek(0)  # Reset pointer
+                try:
+                    with st.spinner(f"Pre-uploading {f.name} to server..."):
+                        upload_resp = upload_image(f.name, file_bytes)
+                        if upload_resp.status_code == 200:
+                            ref_path = upload_resp.json().get("full_image_ref", "")
+                            st.session_state[state_key] = ref_path
+                        else:
+                            st.error(f"Failed to pre-upload {f.name}: {upload_resp.status_code}")
+                except Exception as e:
+                    st.error(f"Error uploading original image {f.name}: {str(e)}")
+
         # Row: Selectbox on left, Original image on right
         image_col, select_col = st.columns([2, 2])
 
@@ -80,10 +98,15 @@ if config["navigation"] == "OCR Workspace":
             else:
                 with st.spinner("Processing OCR..."):
                     try:
+                        # Retrieve the cached original image reference key
+                        ref_key = f"full_image_ref_{uploaded_file.name}"
+                        full_image_ref = st.session_state.get(ref_key, "")
+
                         response = perform_ocr(
                             image_bytes=image_bytes,
                             engine=config["engine"],
-                            target_lang=config["target_lang"]
+                            target_lang=config["target_lang"],
+                            full_image_ref=full_image_ref
                         )
 
                         if response.status_code == 200:
