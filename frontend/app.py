@@ -15,16 +15,13 @@ from frontend.components.image_editor import render_image_editor
 from frontend.components.results import render_results
 from frontend.services.api import perform_ocr, fetch_history, upload_image
 
-# Page configuration setup
 st.set_page_config(
     page_title="Mieru - Manga & Document OCR",
     layout="wide",
 )
 
-# Render configuration sidebar
 config = render_sidebar()
 
-# Main page headers
 st.title("Mieru - Manga & Document OCR")
 
 if config["navigation"] == "OCR Workspace":
@@ -42,7 +39,6 @@ if config["navigation"] == "OCR Workspace":
     )
     st.text(' ')
 
-    # 1. Process files currently in the file uploader and add them to cache
     if uploaded_files:
         for f in uploaded_files:
             if f.name not in st.session_state["uploaded_images_cache"]:
@@ -51,13 +47,11 @@ if config["navigation"] == "OCR Workspace":
                 f.seek(0)
                 try:
                     img = Image.open(f).convert("RGB")
-                    # Cache the image and its bytes
                     st.session_state["uploaded_images_cache"][f.name] = (img, file_bytes)
                 except Exception as e:
                     st.error(f"Error loading {f.name}: {str(e)}")
                     continue
 
-                # Also trigger the background upload to get full_image_ref
                 state_key = f"full_image_ref_{f.name}"
                 if state_key not in st.session_state:
                     try:
@@ -71,16 +65,13 @@ if config["navigation"] == "OCR Workspace":
                     except Exception as e:
                         st.error(f"Error uploading original image {f.name}: {str(e)}")
 
-    # 2. If the cache is not empty, display the workspace
     cached_filenames = list(st.session_state["uploaded_images_cache"].keys())
     
     if cached_filenames:
-        # Add a clear cache button in a clean placement
         if st.button("Clear All Uploaded Images"):
             st.session_state["uploaded_images_cache"] = {}
             st.rerun()
 
-        # Row: Selectbox on left, Original image on right
         image_col, select_col = st.columns([2, 2])
 
         image_options = [f"{i + 1}: {name}" for i, name in enumerate(cached_filenames)]
@@ -103,13 +94,10 @@ if config["navigation"] == "OCR Workspace":
             with center:
                 st.image(image, caption=f"Selected: {selected_filename}", width=400)
 
-        # Row 2: Cropper + Processed Preview side by side
         st.divider()
-        # Pass selected_filename as the unique identifier for key storage
         processed_image_bytes = render_image_editor(image, config, selected_filename)
         st.session_state[f"processed_image_bytes_{selected_filename}"] = processed_image_bytes
 
-        # Row 3: Process Button & Results
         st.divider()
 
         if st.button("Process Image", type="primary", key=f"process_{selected_filename}"):
@@ -144,7 +132,6 @@ if config["navigation"] == "OCR Workspace":
                     except Exception as e:
                         st.error(f"An error occurred: {str(e)}")
 
-        # Display results
         if f"ocr_result_{selected_filename}" in st.session_state:
             render_results(st.session_state[f"ocr_result_{selected_filename}"], config["engine"])
 
@@ -160,12 +147,10 @@ else:
             if not records:
                 st.info("No history logs found in the SQLite database. Switch to 'OCR Workspace' and process an image first.")
             else:
-                # Display structural interactive log table
                 st.dataframe(records, use_container_width=True)
 
                 st.divider()
 
-                # Interactive Detail Selection
                 st.subheader("Historical Detail Viewer")
                 selected_record = st.selectbox(
                     "Select a history entry to view full details:",
@@ -175,12 +160,10 @@ else:
                 )
 
                 if selected_record:
-                    # Side-by-side Layout
                     img_col, txt_col = st.columns([1, 1])
 
                     with img_col:
                         st.subheader("Archived Image")
-                        # Construct image URL using the static path served from the backend
                         from frontend.config import API_BASE_URL
                         img_url = f"{API_BASE_URL}/{selected_record['image_path']}"
                         st.image(img_url, use_container_width=True, caption=selected_record['filename'])

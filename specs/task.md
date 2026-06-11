@@ -87,7 +87,7 @@ This document breaks down the Software Requirements Specification (SRS) and Syst
 ## Phase 6: Finalization & Documentation
 *Goal: Prepare the project for the final academic presentation.*
 
-- [ ] **Task 6.1: Code Cleanup & Refactoring**
+- [x] **Task 6.1: Code Cleanup & Refactoring**
   - Remove hardcoded values and move sensitive data (like API keys) to `.env` files.
   - Add type hints and docstrings to all major backend functions.
 - [ ] **Task 6.2: Write the README**

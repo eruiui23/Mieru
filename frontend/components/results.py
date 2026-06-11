@@ -24,7 +24,6 @@ def render_results(result: dict, engine: str):
                     st.markdown("Translated Text:")
                     st.code(r["translated_text"], language=None)
 
-                    # Japanese Analysis expander per engine
                     analysis = r.get("advanced_analysis")
                     if analysis:
                         df = pd.DataFrame(analysis)
@@ -50,7 +49,6 @@ def render_results(result: dict, engine: str):
             st.markdown("**Translated Text**")
             st.code(result.get("translated_text", ""), language=None)
 
-        # Japanese Analysis expander for single mode
         analysis = result.get("advanced_analysis")
         if analysis:
             df = pd.DataFrame(analysis)

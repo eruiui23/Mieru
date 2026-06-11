@@ -45,7 +45,6 @@ def render_image_editor(image: Image.Image, config: dict, idx: int) -> bytes:
         right = int((crop_box["left"] + crop_box["width"]) * scale_back)
         bottom = int((crop_box["top"] + crop_box["height"]) * scale_back)
 
-        # Clamp to image bounds
         left = max(0, left)
         top = max(0, top)
         right = min(image.width, right)
@@ -69,7 +68,6 @@ def render_image_editor(image: Image.Image, config: dict, idx: int) -> bytes:
 
         st.caption("Processed Preview")
 
-        # Fixed height container for the preview
         PREVIEW_HEIGHT = 500
         preview_ratio = PREVIEW_HEIGHT / preview.height
         preview_display = preview.resize(
@@ -77,7 +75,6 @@ def render_image_editor(image: Image.Image, config: dict, idx: int) -> bytes:
         )
         st.image(preview_display)
 
-        # Convert processed image to PNG bytes
         buffer = io.BytesIO()
         preview.save(buffer, format="PNG")
         return buffer.getvalue()

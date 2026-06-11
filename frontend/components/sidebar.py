@@ -23,7 +23,6 @@ def render_sidebar() -> dict:
 
         st.divider()
 
-        # Defaults for when navigation is set to "View History Log"
         engine = "manga_ocr"
         grayscale = False
         brightness = 1.0
@@ -32,7 +31,6 @@ def render_sidebar() -> dict:
 
         if navigation == "OCR Workspace":
             st.subheader("Engine & Language")
-            # OCR Engine Selector
             engine = st.selectbox(
                 "OCR Engine",
                 options=["manga_ocr", "tesseract", "easyocr", "compare"],
@@ -46,7 +44,6 @@ def render_sidebar() -> dict:
 
             st.divider()
 
-            # Image Manipulation Controls
             st.subheader("Image Adjustments")
 
             grayscale = st.checkbox("Grayscale", value=False)
@@ -69,7 +66,6 @@ def render_sidebar() -> dict:
 
             st.divider()
 
-            # Target Language Selector
             target_lang = st.selectbox(
                 "Translate To",
                 options=["en", "id"],
