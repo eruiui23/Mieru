@@ -20,4 +20,5 @@ dependencies = [
     "pykakasi",
     "jamdict",
     "jamdict-data",
+    "sqlalchemy>=2.0.0",
 ]
