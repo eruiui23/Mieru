@@ -2,13 +2,7 @@ import pandas as pd
 import streamlit as st
 
 def render_results(result: dict, engine: str):
-    """
-    Renders the OCR and translation results.
 
-    Args:
-        result (dict): The result dictionary from the backend.
-        engine (str): The selected OCR engine identifier.
-    """
     st.subheader("Results")
 
     if engine == "compare":

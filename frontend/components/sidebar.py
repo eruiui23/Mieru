@@ -1,18 +1,7 @@
 import streamlit as st
 
 def render_sidebar() -> dict:
-    """
-    Renders the navigation and configuration widgets in the Streamlit sidebar.
 
-    Returns:
-        dict: A dictionary of configuration options:
-            - navigation (str): Active view state ("OCR Workspace" or "View History Log").
-            - engine (str): Selected OCR Engine.
-            - grayscale (bool): Whether grayscale is enabled.
-            - brightness (float): Brightness slider value.
-            - contrast (float): Contrast slider value.
-            - target_lang (str): Selected target translation language.
-    """
     with st.sidebar:
         st.header("Mieru Menu")
         navigation = st.radio(

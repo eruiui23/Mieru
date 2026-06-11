@@ -4,18 +4,7 @@ from PIL import Image, ImageEnhance, ImageOps
 from streamlit_cropper import st_cropper
 
 def render_image_editor(image: Image.Image, config: dict, idx: int) -> bytes:
-    """
-    Renders the cropping tool and processed preview side by side.
-    Applies grayscale, brightness, and contrast adjustments.
 
-    Args:
-        image (Image.Image): The original PIL Image to be cropped/processed.
-        config (dict): Adjustment configuration (grayscale, brightness, contrast).
-        idx (int): Index of the current active image (used to generate unique keys).
-
-    Returns:
-        bytes: The processed cropped image as PNG bytes.
-    """
     crop_col, preview_col = st.columns([1, 1])
 
     with crop_col:
