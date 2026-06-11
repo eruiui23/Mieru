@@ -218,3 +218,14 @@ When the Streamlit client sends an image and parameters to the FastAPI backend, 
     * For the `/compare` endpoint, execution runs asynchronously using Python's `asyncio.gather()` to prevent engine bottlenecks.
 3. **Post-processing (Translation):** The extracted text strings are routed to the translation API module.
 4. **Response Delivery:** The latency metrics, raw text, and translated text are packaged into a JSON response and returned to the client.
+
+---
+
+## 6. Architecture Decision Records (ADR)
+
+### ADR 1: SQLAlchemy Integration within Clean Architecture
+
+* **Topic**: SQLAlchemy Integration within Clean Architecture.
+* **Decision**: Moving from raw `sqlite3` to SQLAlchemy 2.0.
+* **Rationale**: To gain type safety (via `Mapped` columns) and better maintainability compared to manually managing SQL queries and schemas.
+* **Clean Architecture Alignment**: The ORM is strictly confined to the outermost "Frameworks & Drivers" layer. Data mapping to standard Python dictionaries ensures that SQLAlchemy model objects do not leak into our inner domain logic, preserving independence from external database frameworks.

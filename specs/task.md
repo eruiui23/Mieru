@@ -94,4 +94,10 @@ This document breaks down the Software Requirements Specification (SRS) and Syst
   - Compile the Feature Backlog, Setup Instructions, and API Documentation into a comprehensive `README.md`.
 - [ ] **Task 6.3: Presentation Prep**
   - Prepare a set of sample images (standard documents, manga pages, noisy images) to demonstrate the application's capabilities during the final project review.
+- [ ] **Task 6.4: Refactor Persistence Layer to use SQLAlchemy ORM**
+  - **Objective**: Transition `backend/app/services/database.py` (or `backend/app/data/database.py` if relocated) from raw `sqlite3` SQL to SQLAlchemy 2.0.
+  - **Constraints (Strict)**: 
+    * You MUST preserve the exact function signatures for `init_db()`, `save_uploaded_image()`, `save_history()`, and `get_history()`. Do not break the current interface contracts.
+    * `get_history()` must continue to return a `List[Dict[str, Any]]` mapping to ensure the core application remains decoupled from the ORM.
+    * Keep all database operations synchronous.
 
